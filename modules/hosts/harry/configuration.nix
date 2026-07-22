@@ -78,8 +78,6 @@
         packages = with pkgs; [
           thunderbird
           inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
-          nixfmt
-          wl-clipboard
           self.packages.${pkgs.stdenv.hostPlatform.system}.myJujutsu
           self.packages.${pkgs.stdenv.hostPlatform.system}.myTmux
           claude-code
@@ -91,14 +89,22 @@
         "nix-command"
         "flakes"
       ];
+      nix.settings.auto-optimise-store = true;
+      nix.gc = {
+        automatic = true;
+        dates = "weekly";
+        options = "--delete-older-than 30d";
+      };
 
       environment.systemPackages = with pkgs; [
         git
         busybox
         fishPlugins.tide
+        nixfmt
+        wl-clipboard
         self.packages.${pkgs.stdenv.hostPlatform.system}.myNeovim
       ];
 
-      system.stateVersion = "26.05"; # Did you read the comment?
+      system.stateVersion = "26.05";
     };
 }
