@@ -58,6 +58,14 @@
           color13 = "#ba8baf";
           color14 = "#86c1b9";
           color15 = "#f8f8f8";
+
+          # base16 256-color extension (base09, base0F, base01, base02, base04, base06)
+          color16 = "#dc9656";
+          color17 = "#a16946";
+          color18 = "#282828";
+          color19 = "#383838";
+          color20 = "#b8b8b8";
+          color21 = "#e8e8e8";
         };
 
       };
