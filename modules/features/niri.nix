@@ -53,6 +53,7 @@
               # apps
               "Mod+Return".spawn-sh = kitty;
               "Mod+S".spawn-sh = "${noctalia} ipc call launcher toggle";
+              "Mod+V".spawn-sh = "${noctalia} ipc call launcher clipboard";
 
               # window management
               "Mod+Q".close-window = [ ];
