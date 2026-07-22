@@ -79,8 +79,9 @@
           thunderbird
           inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
           nixfmt
-          tmux
+          wl-clipboard
           self.packages.${pkgs.stdenv.hostPlatform.system}.myJujutsu
+          self.packages.${pkgs.stdenv.hostPlatform.system}.myTmux
         ];
       };
 
