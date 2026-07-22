@@ -51,6 +51,7 @@
           options = "lv3:caps_switch";
         };
         printing.enable = true;
+        upower.enable = true;
         # The EC drives the fan off Intel DPTF thermal trip points; thermald's
         # --adaptive mode loads the OEM DPTF tables from ACPI so the fan
         # actually idles instead of running constantly (no direct PWM control
@@ -74,6 +75,7 @@
         extraGroups = [
           "networkmanager"
           "wheel"
+          "video"
         ];
         packages = with pkgs; [
           thunderbird
@@ -81,27 +83,29 @@
           self.packages.${pkgs.stdenv.hostPlatform.system}.myJujutsu
           self.packages.${pkgs.stdenv.hostPlatform.system}.myTmux
           claude-code
+          zotero
+          kdePackages.okular
         ];
       };
 
       nixpkgs.config.allowUnfree = true;
-      nix.settings.experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-      nix.settings.auto-optimise-store = true;
-      nix.gc = {
-        automatic = true;
-        dates = "weekly";
-        options = "--delete-older-than 30d";
+      nix = {
+        settings.experimental-features = [
+          "nix-command"
+          "flakes"
+        ];
+        settings.auto-optimise-store = true;
+        gc = {
+          automatic = true;
+          dates = "weekly";
+          options = "--delete-older-than 30d";
+        };
       };
 
       environment.systemPackages = with pkgs; [
         git
         busybox
         fishPlugins.tide
-        nixfmt
-        wl-clipboard
         self.packages.${pkgs.stdenv.hostPlatform.system}.myNeovim
       ];
 
