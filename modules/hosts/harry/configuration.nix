@@ -94,6 +94,7 @@
       environment.systemPackages = with pkgs; [
         git
         busybox
+        fishPlugins.tide
         self.packages.${pkgs.stdenv.hostPlatform.system}.myNeovim
       ];
 
