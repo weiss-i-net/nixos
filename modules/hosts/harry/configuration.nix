@@ -80,7 +80,7 @@
           inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
           nixfmt
           tmux
-          jujutsu
+          self.packages.${pkgs.stdenv.hostPlatform.system}.myJujutsu
         ];
       };
 
