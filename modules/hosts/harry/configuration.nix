@@ -11,6 +11,15 @@
 
       boot.loader.systemd-boot.enable = true;
       boot.loader.efi.canTouchEfiVariables = true;
+      # The IPU3 CIO2 driver's fwnode async notifier completion is recursive:
+      # it also waits on ov8865's ancillary VCM (autofocus motor) sub-notifier,
+      # which never completes because dw9719 has no ACPI/i2c modalias (only
+      # device-tree `of:` aliases), so udev never auto-loads it for the
+      # software-node-instantiated VCM device. That one unsatisfied ancillary
+      # connection silently blocks CIO2's media-graph links for all 3 sensors,
+      # not just the rear camera (confirmed live via media-ctl -p and kernel
+      # dynamic debug on v4l2_async/ipu3_cio2/ipu_bridge). Force it to load.
+      boot.kernelModules = [ "dw9719" ];
       networking.hostName = "harry"; # Define your hostname.
       networking.networkmanager.enable = true;
 
@@ -106,6 +115,10 @@
         git
         busybox
         fishPlugins.tide
+        # `cam`/`media-ctl`/`v4l2-ctl` for verifying the IPU3 camera stack
+        # (see the ov7251 blacklist above).
+        libcamera
+        v4l-utils
         self.packages.${pkgs.stdenv.hostPlatform.system}.myNeovim
       ];
 
