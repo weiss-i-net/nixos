@@ -49,6 +49,18 @@
         ];
       };
 
+      # Windows partition (dual-boot). nofail so a NixOS boot never hangs on
+      # it; uid/gid so jannik can read/write without sudo.
+      fileSystems."/mnt/c" = {
+        device = "/dev/disk/by-uuid/785A0D7B5A0D3800";
+        fsType = "ntfs3";
+        options = [
+          "nofail"
+          "uid=1000"
+          "gid=100"
+        ];
+      };
+
       swapDevices = [ ];
 
       nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

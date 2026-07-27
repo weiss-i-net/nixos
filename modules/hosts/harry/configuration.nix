@@ -19,7 +19,12 @@
       # connection silently blocks CIO2's media-graph links for all 3 sensors,
       # not just the rear camera (confirmed live via media-ctl -p and kernel
       # dynamic debug on v4l2_async/ipu3_cio2/ipu_bridge). Force it to load.
-      boot.kernelModules = [ "dw9719" ];
+      boot.kernelModules = [
+        "dw9719"
+        # Provides /dev/nbd*, used below to expose the WSL ext4.vhdx as a
+        # block device (qemu-nbd can't create the node itself).
+        "nbd"
+      ];
 
       swapDevices = [
         {
@@ -40,6 +45,32 @@
         libcamera
         v4l-utils
       ];
+
+      # The WSL2 openSUSE Tumbleweed instance stores its root filesystem as a
+      # dynamically-sized VHDX (Hyper-V disk image) containing a raw,
+      # unpartitioned ext4 filesystem, so it can't be listed directly in
+      # fileSystems. qemu-nbd exposes it as /dev/nbd0 (a real block device
+      # NixOS can then mount), which needs the Windows partition (/mnt/c,
+      # see hardware.nix) mounted first.
+      systemd.services.mnt-wsl-connect = {
+        description = "Connect the WSL ext4.vhdx via qemu-nbd";
+        unitConfig.RequiresMountsFor = "/mnt/c";
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = "${pkgs.qemu-utils}/bin/qemu-nbd -c /dev/nbd0 /mnt/c/Users/janni/AppData/Local/Packages/46932SUSE.openSUSETumbleweed_022rs5jcyhyac/LocalState/ext4.vhdx";
+          ExecStop = "${pkgs.qemu-utils}/bin/qemu-nbd -d /dev/nbd0";
+        };
+      };
+
+      fileSystems."/mnt/wsl" = {
+        device = "/dev/nbd0";
+        fsType = "ext4";
+        options = [
+          "nofail"
+          "x-systemd.requires=mnt-wsl-connect.service"
+        ];
+      };
 
       # Keys live outside the repo (/etc/wireguard, not in the nix store) so
       # they never end up in git history.
