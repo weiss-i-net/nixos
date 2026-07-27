@@ -62,9 +62,7 @@
             presharedKeyFile = "/etc/wireguard/harry-fritzbox.psk";
             allowedIPs = [
               "192.168.178.0/24"
-              "0.0.0.0/0"
               "fd00::/64"
-              "::/0"
             ];
             endpoint = "vpn.jhiller.me:55974";
             persistentKeepalive = 25;
