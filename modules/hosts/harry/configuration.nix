@@ -40,5 +40,36 @@
         libcamera
         v4l-utils
       ];
+
+      # Keys live outside the repo (/etc/wireguard, not in the nix store) so
+      # they never end up in git history.
+      networking.wg-quick.interfaces.fritzbox = {
+        address = [
+          "192.168.178.204/24"
+          "fd00::204/64"
+        ];
+        dns = [
+          "192.168.178.36"
+          "192.168.178.1"
+          "fd00::ec"
+          "fd00::4a5d:35ff:fea4:ff42"
+          "fritz.box"
+        ];
+        privateKeyFile = "/etc/wireguard/harry-fritzbox.key";
+        peers = [
+          {
+            publicKey = "nKFJElLkeRgS0WqYt4TONILr5qFJia1+MA+wxyJMY0E=";
+            presharedKeyFile = "/etc/wireguard/harry-fritzbox.psk";
+            allowedIPs = [
+              "192.168.178.0/24"
+              "0.0.0.0/0"
+              "fd00::/64"
+              "::/0"
+            ];
+            endpoint = "zvzhasipdh0g65fi.myfritz.net:55974";
+            persistentKeepalive = 25;
+          }
+        ];
+      };
     };
 }
