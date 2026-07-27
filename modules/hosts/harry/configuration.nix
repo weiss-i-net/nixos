@@ -66,7 +66,7 @@
               "fd00::/64"
               "::/0"
             ];
-            endpoint = "zvzhasipdh0g65fi.myfritz.net:55974";
+            endpoint = "vpn.jhiller.me:55974";
             persistentKeepalive = 25;
           }
         ];
