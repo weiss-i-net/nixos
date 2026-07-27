@@ -49,6 +49,13 @@
               center-focused-column = "never";
             };
 
+            window-rules = [
+              {
+                matches = [ { app-id = "^zen"; } ];
+                default-column-width.proportion = 0.666667;
+              }
+            ];
+
             binds = {
               # apps
               "Mod+Return".spawn-sh = kitty;
