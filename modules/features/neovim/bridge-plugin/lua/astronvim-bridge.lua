@@ -88,17 +88,17 @@ local M = {}
 function M.load(root_specs)
   local groups, order = {}, {}
   -- A couple of our plugins pull in the real (unused) `lazy.nvim` package
-  -- transitively as a nixpkgs dependency. astrocore/astrolsp code paths that
-  -- do `pcall(require, "lazy.core.config")` to ask lazy.nvim things (is this
-  -- plugin installed, defer this callback until plugin X loads, ...) would
-  -- otherwise find it, assume it's a fully working lazy.nvim, and crash on
-  -- its never-populated `.spec`/`.plugins` fields. Force that require to
-  -- fail instead, so those code paths take their "lazy not available"
-  -- fallback -- `is_available`/`get_plugin`/`plugin_opts` are separately
-  -- monkeypatched below to answer from our own registry rather than falling
-  -- back to "unavailable".
-  for _, mod_name in ipairs { "lazy.core.config", "lazy.core.plugin" } do
-    package.preload[mod_name] = function() error(mod_name .. ": not available (nix-managed config, no lazy.nvim)") end
+  -- transitively as a nixpkgs dependency, so `require("lazy.core.config")`
+  -- succeeds and returns a real-but-never-populated module. Most lazy.nvim
+  -- integrations across this ecosystem correctly guard those calls with
+  -- `if package.loaded.lazy then ... end` first (safe: we never `require
+  -- "lazy"` ourselves, so that's always false) -- but a couple, e.g.
+  -- snacks.nvim's dashboard startup-time widget (lazy/stats.lua's
+  -- `M.stats()`), call it unconditionally. Rather than track down/patch
+  -- every such call site, make the require itself succeed with a table
+  -- shaped like a real one, built from our own plugin registry.
+  package.preload["lazy.core.plugin"] = function()
+    error "lazy.core.plugin: not available (nix-managed config, no lazy.nvim)"
   end
 
   -- Registry of every plugin we actually installed, keyed by raw repo
@@ -125,6 +125,15 @@ function M.load(root_specs)
       end
     end
   end
+
+  do
+    local fake_plugins = {}
+    for name in pairs(installed) do
+      fake_plugins[name] = { name = name, _ = { loaded = true } }
+    end
+    package.loaded["lazy.core.config"] = { plugins = fake_plugins, spec = { plugins = fake_plugins } }
+  end
+
   local resolve_cache = {}
   local function resolve(name)
     if resolve_cache[name] then return unpack(resolve_cache[name]) end
