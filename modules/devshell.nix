@@ -1,7 +1,13 @@
 { inputs, ... }:
 {
   perSystem =
-    { system, pkgs, self', ... }:
+    {
+      system,
+      pkgs,
+      self',
+      lib,
+      ...
+    }:
     let
       # claude-code is unfree; only allow it for this local pkgs instance rather
       # than flipping allowUnfree on for every perSystem package.
@@ -17,6 +23,7 @@
           pkgsUnfree.claude-code
           self'.packages.myJujutsu
         ];
+        shellHook = "exec ${lib.getExe pkgs.fish}";
       };
     };
 }
