@@ -1,5 +1,38 @@
 {
   "nodes": {
+    "astronvim-core": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785180599,
+        "narHash": "sha256-km6qslw1ccOXkcxB4i7ht8j1O8bzd8ks1m1FcnRt574=",
+        "owner": "AstroNvim",
+        "repo": "AstroNvim",
+        "rev": "0bdf9430cfd91604eddc66aaed1ab4310cc4443c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "AstroNvim",
+        "ref": "v6.0.6",
+        "repo": "AstroNvim",
+        "type": "github"
+      }
+    },
+    "astronvim-template": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775146383,
+        "narHash": "sha256-zrwpZ6Ow5qL9dml5gJFmLEOlQa02qm/AdFYGlfpw8fY=",
+        "owner": "AstroNvim",
+        "repo": "template",
+        "rev": "49a7161b776f8bc6c23508819ea1ad4e7b359bee",
+        "type": "github"
+      },
+      "original": {
+        "owner": "AstroNvim",
+        "repo": "template",
+        "type": "github"
+      }
+    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": "nixpkgs-lib"
@@ -107,6 +140,8 @@
     },
     "root": {
       "inputs": {
+        "astronvim-core": "astronvim-core",
+        "astronvim-template": "astronvim-template",
         "flake-parts": "flake-parts",
         "import-tree": "import-tree",
         "nixos-hardware": "nixos-hardware",
