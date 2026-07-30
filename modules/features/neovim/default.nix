@@ -7,7 +7,7 @@
       # Every plugin AstroNvim v6's core (astronvim-core input) and the
       # template default to. Installed as plain nix-managed packDir entries
       # (no lazy.nvim, no runtime git clones) -- see
-      # ./neovim/bridge-plugin/lua/astronvim-bridge.lua for how their
+      # ./bridge-plugin/lua/astronvim-bridge.lua for how their
       # `opts`/`config` get wired up without lazy.nvim as the plugin manager.
       astronvimPluginNames = [
         "aerial-nvim"
@@ -79,12 +79,12 @@
           # in a derivation (rather than passed as a bare path) for the same
           # reason: it needs a `.name` the wrapper module can introspect.
           astronvim-bridge.data = pkgs.runCommandLocal "astronvim-bridge" { } ''
-            cp -r ${./neovim/bridge-plugin} $out
+            cp -r ${./bridge-plugin} $out
           '';
           # Runs the resolver over the core + template spec files above.
           astronvim-init = {
             data = null;
-            config = builtins.readFile ./neovim/astronvim-init.lua;
+            config = builtins.readFile ./astronvim-init.lua;
           };
         };
         runtimePkgs = with pkgs; [

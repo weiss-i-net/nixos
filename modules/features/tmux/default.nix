@@ -78,8 +78,8 @@
           bind-key -T copy-mode-vi 'V' send -X select-line
           bind-key -T copy-mode-vi 'r' send -X rectangle-toggle
 
-          # config is managed by Nix; edit modules/features/tmux.nix and rebuild instead
-          bind r display-message "tmux config is managed by Nix -- edit modules/features/tmux.nix"
+          # config is managed by Nix; edit modules/features/tmux/default.nix and rebuild instead
+          bind r display-message "tmux config is managed by Nix -- edit modules/features/tmux/default.nix"
 
           ######################
           ### DESIGN CHANGES ###
