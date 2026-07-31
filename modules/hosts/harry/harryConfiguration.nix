@@ -62,6 +62,9 @@
         ];
       };
 
+      sops.secrets."harry-wireguard-private-key" = { };
+      sops.secrets."harry-wireguard-psk" = { };
+
       networking.wg-quick.interfaces.fritzbox = {
         address = [
           "192.168.178.204/24"
@@ -74,11 +77,11 @@
           "fd00::4a5d:35ff:fea4:ff42"
           "fritz.box"
         ];
-        privateKeyFile = "/etc/wireguard/harry-fritzbox.key";
+        privateKeyFile = config.sops.secrets."harry-wireguard-private-key".path;
         peers = [
           {
             publicKey = "nKFJElLkeRgS0WqYt4TONILr5qFJia1+MA+wxyJMY0E=";
-            presharedKeyFile = "/etc/wireguard/harry-fritzbox.psk";
+            presharedKeyFile = config.sops.secrets."harry-wireguard-psk".path;
             allowedIPs = [
               "192.168.178.0/24"
               "fd00::/64"

@@ -22,6 +22,8 @@
           pkgs.gh
           pkgsUnfree.claude-code
           self'.packages.myJujutsu
+          pkgs.sops
+          pkgs.age
         ];
         shellHook = "exec ${lib.getExe pkgs.fish}";
       };
