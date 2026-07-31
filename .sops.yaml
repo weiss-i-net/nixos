@@ -1,0 +1,11 @@
+keys:
+  - &admin age1djs6s5qk50mzl4zww77xeqx2k8va8h5trc729w23mylrdpfa5d0q5pakxr
+  - &desktop age1d2prhp5h9nk9xhv6e5mh76adwga4hk90f4j0lavlvaq9axs3l48sx5v388
+  - &harry age19t7e9aj5pwx0fzgul5v6k0mnv6dc74vxpjn3cyzj2v9vkyy87u9q359nd7
+creation_rules:
+  - path_regex: modules/system/secrets/secrets\.yaml$
+    key_groups:
+      - age:
+          - *admin
+          - *desktop
+          - *harry
