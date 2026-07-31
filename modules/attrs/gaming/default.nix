@@ -11,6 +11,6 @@
       # Windows) that persists across reboots.
       services.lact.enable = true;
 
-      environment.systemPackages = [ pkgs.discord ];
+      users.users."jannik".packages = [ pkgs.discord ];
     };
 }
