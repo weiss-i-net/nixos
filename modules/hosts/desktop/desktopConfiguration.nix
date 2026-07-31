@@ -1,6 +1,11 @@
 { self, inputs, ... }: {
   flake.nixosModules.desktopConfiguration =
-    { config, pkgs, ... }:
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
 
     {
       imports = [
@@ -11,10 +16,35 @@
 
       networking.hostName = "desktop";
 
-      # Two-monitor desk setup; see the outputs override in this file's
-      # perSystem block below (settings/keybinds themselves live in
-      # modules/features/niri/default.nix, shared with all hosts).
-      programs.niri.package = self.packages.${pkgs.stdenv.hostPlatform.system}.myNiriDesktop;
+      # Acer VG271U is the higher-spec (2560x1440@144Hz) primary monitor; LG
+      # IPS277 is the lower-spec (1920x1080@60Hz) secondary, placed to its
+      # left per the desktop's physical desk layout. `.wrap` re-evaluates
+      # myNiri's underlying module config with this override merged in
+      # (same mechanism as NixOS's own module system); mkForce is needed
+      # because otherwise the single-output default would just merge
+      # alongside these two instead of being replaced.
+      programs.niri.package = self.packages.${pkgs.stdenv.hostPlatform.system}.myNiri.wrap {
+        settings.outputs = lib.mkForce {
+          "HDMI-A-1" = {
+            scale = 1;
+            position = _: {
+              props = {
+                x = 0;
+                y = 0;
+              };
+            };
+          };
+          "DP-2" = {
+            scale = 1;
+            position = _: {
+              props = {
+                x = 1920;
+                y = 0;
+              };
+            };
+          };
+        };
+      };
 
       # Provides /dev/nbd*, used below to expose the WSL ext4.vhdx as a
       # block device (qemu-nbd can't create the node itself).
@@ -44,42 +74,6 @@
           "nofail"
           "x-systemd.requires=mnt-wsl-connect.service"
         ];
-      };
-    };
-
-  perSystem =
-    {
-      pkgs,
-      lib,
-      self',
-      ...
-    }:
-    {
-      # Acer VG271U is the higher-spec (2560x1440@144Hz) primary monitor; LG
-      # IPS277 is the lower-spec (1920x1080@60Hz) secondary, placed to its
-      # left per the desktop's physical desk layout.
-      packages.myNiriDesktop = self.lib.mkNiriPackage {
-        inherit pkgs lib self';
-        outputs = {
-          "HDMI-A-1" = {
-            scale = 1;
-            position = _: {
-              props = {
-                x = 0;
-                y = 0;
-              };
-            };
-          };
-          "DP-2" = {
-            scale = 1;
-            position = _: {
-              props = {
-                x = 1920;
-                y = 0;
-              };
-            };
-          };
-        };
       };
     };
 }

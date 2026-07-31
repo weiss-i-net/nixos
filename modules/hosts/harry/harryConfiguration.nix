@@ -1,6 +1,11 @@
 { self, inputs, ... }: {
   flake.nixosModules.harryConfiguration =
-    { config, pkgs, ... }:
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
 
     {
       imports = [
@@ -10,6 +15,13 @@
       ];
 
       networking.hostName = "harry";
+
+      # Surface's high-DPI internal panel needs upscaling.
+      programs.niri.package = self.packages.${pkgs.stdenv.hostPlatform.system}.myNiri.wrap {
+        settings.outputs = lib.mkForce {
+          "eDP-1".scale = 1.75;
+        };
+      };
 
       boot.kernelModules = [
         "dw9719"
