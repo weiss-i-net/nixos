@@ -4,6 +4,7 @@
     {
       programs.steam.enable = true;
       programs.gamemode.enable = true;
+      programs.gamescope.enable = true;
 
       # amdgpu's default "auto" fan/power behavior runs noticeably hotter and
       # louder under load than AMD's Windows driver. LACT gives a GUI+daemon
