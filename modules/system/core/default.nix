@@ -23,6 +23,7 @@
       programs.fish.enable = true;
 
       nixpkgs.config.allowUnfree = true;
+      hardware.enableRedistributableFirmware = true;
       nix = {
         settings.experimental-features = [
           "nix-command"
