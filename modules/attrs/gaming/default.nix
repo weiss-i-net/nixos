@@ -12,6 +12,11 @@
       # Windows) that persists across reboots.
       services.lact.enable = true;
 
+      # LACT can only do fan/power limit control without this; overdrive
+      # mode is what unlocks clock/voltage curve tuning (amdgpu's
+      # equivalent of Adrenalin's "Overdrive" tab).
+      hardware.amdgpu.overdrive.enable = true;
+
       users.users."jannik".packages = [ pkgs.discord ];
     };
 }
