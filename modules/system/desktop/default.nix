@@ -20,6 +20,7 @@
         };
         printing.enable = true;
         upower.enable = true;
+        power-profiles-daemon.enable = true;
       };
 
       hardware.bluetooth.enable = true;
