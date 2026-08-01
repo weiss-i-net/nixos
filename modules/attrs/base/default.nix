@@ -32,6 +32,7 @@
           claude-code
           zotero
           kdePackages.okular
+          wdisplays
         ];
       };
 
