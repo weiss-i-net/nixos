@@ -14,6 +14,7 @@
       ];
 
       users.users."jannik" = {
+        uid = 1000;
         isNormalUser = true;
         description = "Jannik Hiller";
         shell = pkgs.fish;
