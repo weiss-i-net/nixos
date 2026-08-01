@@ -10,6 +10,7 @@
         self.nixosModules.systemDesktop
         self.nixosModules.systemSecrets
         self.nixosModules.niri
+        self.nixosModules.gopro
       ];
 
       users.users."jannik" = {
@@ -27,6 +28,7 @@
           inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
           self.packages.${pkgs.stdenv.hostPlatform.system}.myJujutsu
           self.packages.${pkgs.stdenv.hostPlatform.system}.myTmux
+          self.packages.${pkgs.stdenv.hostPlatform.system}.gopro
           claude-code
           zotero
           kdePackages.okular
