@@ -124,7 +124,7 @@
           "blacklist": [],
           "chevronColor": "none",
           "colorizeIcons": false,
-          "drawerEnabled": true,
+          "drawerEnabled": false,
           "hidePassive": false,
           "id": "Tray",
           "pinned": []
@@ -141,7 +141,7 @@
           "deviceNativePath": "__default__",
           "displayMode": "graphic",
           "hideIfIdle": false,
-          "hideIfNotDetected": false,
+          "hideIfNotDetected": true,
           "id": "Battery",
           "showNoctaliaPerformance": false,
           "showPowerProfiles": true
@@ -296,7 +296,7 @@
   "wallpaper": {
     "enabled": true,
     "overviewEnabled": false,
-    "directory": "/home/jannik/Pictures/Wallpapers",
+    "directory": "/home/jannik/nixos/modules/features/noctalia/wallpapers",
     "monitorDirectories": [],
     "enableMultiMonitorDirectories": false,
     "showHiddenFiles": false,
