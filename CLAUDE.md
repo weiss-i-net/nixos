@@ -4,13 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Version control: jj, not git
 
-This repo is a colocated `jj`/`git` repo. Use Jujutsu (`jj`) commands, not `git`:
-
-- `jj status`, `jj log` — inspect state / history
-- `jj describe -m "message"` — set the description of the current change
-- `jj new` — start a new change on top of the current one
-- There is no separate staging area or index and no need to "commit" in the git sense — every edit to the working copy is automatically recorded as the current (`@`) change. Use `jj describe` to give it a message, and `jj new` to start the next one.
-- The `.git` directory exists only for jj colocation and flake `git+file` resolution; don't run `git commit`/`git add` directly, operate through `jj`.
+This repo is a colocated `jj`/`git` repo (both `.jj/` and `.git/` exist). Use Jujutsu (`jj`) commands, not `git` — the `jj-vcs` skill auto-activates for VCS operations and covers the workflow (`jj status`, `jj describe -m`, `jj new`, etc.). The one thing worth knowing that the skill has no way to infer: the `.git` directory here exists only for jj colocation and flake `git+file` resolution, not for direct use — don't run `git commit`/`git add` directly, operate through `jj`.
 
 ## Commands
 
@@ -20,6 +14,7 @@ This repo is a colocated `jj`/`git` repo. Use Jujutsu (`jj`) commands, not `git`
 - `nix build .#<packageName>` — build a single wrapped package (e.g. `nix build .#myNeovim`) to check just that module.
 - `nix fmt` — format the tree with `nixfmt-tree` (configured in `modules/formatter.nix`).
 - There is no separate lint/test suite; `nix flake show` and `nixos-rebuild build` are the correctness checks.
+- `modules/system/secrets/secrets.yaml` is sops-nix encrypted; edit it with `sops modules/system/secrets/secrets.yaml` (decrypts using the age key at `/var/lib/sops-nix/key.txt` on target hosts). The devShell (`nix develop`) provides `sops` and `age`.
 
 ## Architecture
 
@@ -31,21 +26,42 @@ Each module file is a self-contained flake-parts module (a function of `{ self, 
 
 `modules/parts.nix` sets `systems = [ "x86_64-linux" "aarch64-linux" ]`, which is what drives `perSystem` evaluation across both architectures.
 
+### Module categories
+
+`modules/` splits into four top-level categories, each with a distinct role:
+- `features/` — one subfolder per wrapped app/binary (e.g. `neovim`, `kitty`, `tmux`).
+- `attrs/` — attributes composed from other modules; no new features/binaries defined here, just bundling.
+- `system/` — basic system config with no binaries of its own; not meant to be used standalone (network, audio, etc.).
+- `hosts/` — per-machine presets; output names match the subfolder names (`nixosConfigurations.desktop`, `.harry`).
+
+This is what determines where a new module belongs: a wrapped program goes in `features/`, a reusable bundle of other modules goes in `attrs/`, binary-less system config goes in `system/`, and machine-specific config goes in `hosts/`.
+
 ### Hosts
 
 Each host lives in `modules/hosts/<name>/` with three files:
-- `hardware.nix` — machine-specific hardware config (normally hardware-scan output, hand-edited for this host).
-- `configuration.nix` — defines `flake.nixosModules.<name>Configuration`, importing that host's hardware module plus `self.nixosModules.common`, and setting host-specific options (e.g. `networking.hostName`, kernel workarounds, host-only packages).
+- `hardware.nix` — machine-specific hardware config (normally hardware-scan output, hand-edited for this host), defining `flake.nixosModules.<name>Hardware`.
+- `<name>Configuration.nix` — defines `flake.nixosModules.<name>Configuration`, importing that host's hardware module plus `self.nixosModules.base` (and, for `desktop`, `self.nixosModules.gaming`), and setting host-specific options (e.g. `networking.hostName`, kernel workarounds, host-only packages/secrets).
 - `default.nix` — defines `flake.nixosConfigurations.<name>` via `inputs.nixpkgs.lib.nixosSystem`, importing only `self.nixosModules.<name>Configuration`.
 
-`modules/hosts/common.nix` defines `flake.nixosModules.common`, shared across all hosts: boot loader, locale/timezone, greetd+niri session, xkb layout, audio (pipewire), the `jannik` user (including which wrapped packages get installed), nix settings (flakes, gc), and `system.stateVersion`. Host-specific quirks (e.g. the `dw9719` kernel module workaround on `harry` for IPU3 camera bring-up, or `thermald` for fan control) stay in that host's `configuration.nix` with a comment explaining the underlying hardware issue — keep that pattern (explain *why*, not what) for any new hardware workaround.
+`modules/attrs/base/default.nix` defines `flake.nixosModules.base`, imported by every host. It pulls together the shared `system/*` modules below plus `self.nixosModules.niri`, and defines the `jannik` user (shell, sops-managed `hashedPasswordFile`, per-user packages) along with a handful of system-wide packages.
+
+`modules/attrs/gaming/default.nix` defines `flake.nixosModules.gaming`, an opt-in bundle (Steam, gamemode, gamescope, the LACT fan-control daemon) currently only imported by `desktop`, not `harry`.
+
+`modules/system/` splits what used to be a single `common.nix` into one file per concern, each contributing its own `flake.nixosModules.system<Topic>` fragment that `base` imports:
+- `core/` — boot loader, locale/timezone, fish, nix settings (flakes, gc), zram, `system.stateVersion`.
+- `audio/` — pipewire + rtkit.
+- `desktop/` — greetd+niri session, xkb layout, fonts, bluetooth, printing, upower, cursor env vars.
+- `network/` — NetworkManager.
+- `secrets/` — sops-nix wiring (`sops.defaultSopsFile`/`age.keyFile`) plus the `secrets.yaml` it decrypts; declares the `jannik-password` (used for the user's `hashedPasswordFile`) and `jannik-ssh-private-key` secrets. Per-host secrets (e.g. `harry`'s WireGuard keys) are declared directly in that host's `<name>Configuration.nix` instead.
+
+Host-specific quirks (e.g. the `dw9719` kernel module workaround on `harry` for IPU3 camera bring-up, or `thermald` for fan control) stay in that host's `<name>Configuration.nix` with a comment explaining the underlying hardware issue — keep that pattern (explain *why*, not what) for any new hardware workaround.
 
 Adding a host means adding a new `modules/hosts/<name>/` directory following this same three-file shape; nothing elsewhere needs to change since `import-tree` picks it up automatically.
 
 ### wrapper-modules for user-facing programs
 
-`modules/features/*.nix` mostly wrap TUI/GUI programs using the `wrapper-modules` flake input (`inputs.wrapper-modules.wrappers.<program>.wrap { inherit pkgs; settings = { ... }; }`), exposed as `perSystem.packages.my<Program>` (e.g. `myNeovim`, `myKitty`, `myTmux`, `myJujutsu`, `myNiri`, `myNoctalia`). This generates the program's config file(s) from Nix attrsets/strings instead of hand-written dotfiles — the wrapped package embeds its config, so there is no `~/.config/<program>` to edit by hand. **To change a program's behavior, edit its `settings` (or `configBefore`/`configAfter` for raw config text, as in `tmux.nix`) in the corresponding `modules/features/*.nix` file and rebuild** — do not edit generated config files directly (see the intentional "config is managed by Nix" tmux binding in `modules/features/tmux.nix`).
+`modules/features/<program>/default.nix` (one directory per program, e.g. `neovim/`, `kitty/`, `tmux/`, `jujutsu/`, `niri/`, `noctalia/`) mostly wrap TUI/GUI programs using the `wrapper-modules` flake input (`inputs.wrapper-modules.wrappers.<program>.wrap { inherit pkgs; settings = { ... }; }`), exposed as `perSystem.packages.my<Program>` (e.g. `myNeovim`, `myKitty`, `myTmux`, `myJujutsu`, `myNiri`, `myNoctalia`). This generates the program's config file(s) from Nix attrsets/strings instead of hand-written dotfiles — the wrapped package embeds its config, so there is no `~/.config/<program>` to edit by hand. Some feature directories carry extra non-Nix support files alongside `default.nix` (e.g. `neovim/astronvim-init.lua` and `neovim/bridge-plugin/` for its Lua plugin bridge, `noctalia/noctalia.json` read via `builtins.fromJSON`) — the same rule applies to those: edit and rebuild, don't hand-patch generated output. **To change a program's behavior, edit its `settings` (or `configBefore`/`configAfter` for raw config text, as in `tmux/default.nix`) in the corresponding `modules/features/<program>/default.nix` file and rebuild** — do not edit generated config files directly (see the intentional "config is managed by Nix" tmux binding in `modules/features/tmux/default.nix`).
 
-`niri.nix` is the one feature module that also produces a `flake.nixosModules.niri` (a real NixOS module enabling `programs.niri` system-wide with the wrapped package), in addition to its `perSystem.packages.myNiri`. That NixOS module is imported by `common.nix`. Other feature modules only produce `perSystem` packages, which get pulled into the user's package list in `common.nix`'s `users.users."jannik".packages`.
+`niri/default.nix` is the one feature module that also produces a `flake.nixosModules.niri` (a real NixOS module enabling `programs.niri` system-wide with the wrapped package), in addition to its `perSystem.packages.myNiri`. That NixOS module is imported by `modules/attrs/base/default.nix`. Other feature modules only produce `perSystem` packages, which get pulled into the user's package list in `base`'s `users.users."jannik".packages`.
 
-Wrapped packages can reference each other across modules via `self'.packages.<name>` inside `perSystem` (e.g. `niri.nix` uses `self'.packages.myKitty` and `self'.packages.myNoctalia` to wire up spawn/keybind commands), since flake-parts merges all `perSystem` blocks per-system before evaluation.
+Wrapped packages can reference each other across modules via `self'.packages.<name>` inside `perSystem` (e.g. `niri/default.nix` uses `self'.packages.myKitty` and `self'.packages.myNoctalia` to wire up spawn/keybind commands), since flake-parts merges all `perSystem` blocks per-system before evaluation.
