@@ -14,6 +14,7 @@
             name = "Jannik Hiller";
             email = "jannik.hiller@live.de";
           };
+          ui.default-command = "log";
         };
       };
     };
