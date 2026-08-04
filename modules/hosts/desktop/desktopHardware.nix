@@ -117,5 +117,11 @@ _: {
 
       nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
       hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+      # Steam's own runtime and many Proton prefixes are still 32-bit, so the
+      # 32-bit GL/Vulkan userspace has to be installed alongside the 64-bit one.
+      hardware.graphics = {
+        enable = true;
+        enable32Bit = true;
+      };
     };
 }
