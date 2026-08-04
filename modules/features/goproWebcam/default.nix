@@ -23,11 +23,23 @@
         '';
       };
 
+      # The camera's USB network gadget otherwise gets a predictable-interface
+      # name that varies with the port it's plugged into, leaving nothing
+      # stable for the firewall rule below to name. Match it by the same USB
+      # vendor id gopro.fish uses for discovery (2672 == GoPro) and pin it.
+      # .link files are applied by udev, so this needs no networkd.
+      systemd.network.links."10-gopro" = {
+        matchConfig.Property = "ID_VENDOR_ID=2672";
+        linkConfig.Name = "gopro0";
+      };
+
       # The camera pushes its MPEG-TS video stream to the host on this UDP
       # port unprompted -- with no prior outbound packet on that flow, the
       # default stateful firewall silently drops it as an unsolicited
       # inbound connection, leaving ffmpeg's UDP listener waiting forever.
-      networking.firewall.allowedUDPPorts = [ 8554 ];
+      # Scoped to the camera's own link so the port isn't also exposed on
+      # whatever wifi a laptop happens to be on.
+      networking.firewall.interfaces."gopro0".allowedUDPPorts = [ 8554 ];
     }
   );
 
