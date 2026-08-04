@@ -38,6 +38,10 @@
         udisks2.enable = true;
       };
 
+      # Reuse the X11 xkb layout above for the TTYs instead of the default
+      # us keymap.
+      console.useXkbConfig = true;
+
       hardware.bluetooth.enable = true;
 
       programs.dconf.enable = true;
