@@ -1,7 +1,14 @@
 { self, ... }: {
   flake.nixosModules.desktop =
-    { config, pkgs, ... }:
-
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
+    let
+      fileManager = pkgs.nautilus;
+    in
     {
       imports = with self.nixosModules; [
         niri
@@ -28,6 +35,7 @@
         printing.enable = true;
         upower.enable = true;
         gvfs.enable = true;
+        udisks2.enable = true;
       };
 
       hardware.bluetooth.enable = true;
@@ -53,13 +61,18 @@
 
       environment.systemPackages = with pkgs; [
         adwaita-icon-theme
-        nautilus
+        fileManager
+        udiskie # also included here, so the icon gets installed
       ];
 
       home-manager.sharedModules = [
         {
           dconf.enable = true;
           dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
+          services.udiskie = {
+            enable = true;
+            settings.program_options.file_manager = lib.getExe fileManager;
+          };
         }
       ];
     };
