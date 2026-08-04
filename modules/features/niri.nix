@@ -1,11 +1,20 @@
-{ self, inputs, ... }: {
-  flake.nixosModules.niri = { pkgs, lib, ... }: {
-    programs.niri = {
-      enable = true;
-      package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.myNiri;
-    };
-    systemd.user.services.niri.enableDefaultPath = false;
-  };
+{
+  self,
+  inputs,
+  moduleWithSystem,
+  ...
+}:
+{
+  flake.nixosModules.niri = moduleWithSystem (
+    { self', ... }:
+    { lib, ... }: {
+      programs.niri = {
+        enable = true;
+        package = lib.mkDefault self'.packages.myNiri;
+      };
+      systemd.user.services.niri.enableDefaultPath = false;
+    }
+  );
 
   perSystem =
     {

@@ -1,5 +1,5 @@
 { self, inputs, ... }: {
-  flake.nixosModules.systemSecrets =
+  flake.nixosModules.secrets =
     { ... }:
 
     {

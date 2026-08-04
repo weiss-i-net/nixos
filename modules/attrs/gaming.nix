@@ -17,6 +17,6 @@
       # equivalent of Adrenalin's "Overdrive" tab).
       hardware.amdgpu.overdrive.enable = true;
 
-      users.users."jannik".packages = [ pkgs.discord ];
+      environment.systemPackages = [ pkgs.discord ];
     };
 }

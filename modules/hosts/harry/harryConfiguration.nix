@@ -1,5 +1,12 @@
-{ self, inputs, ... }: {
-  flake.nixosModules.harryConfiguration =
+{
+  self,
+  inputs,
+  moduleWithSystem,
+  ...
+}:
+{
+  flake.nixosModules.harryConfiguration = moduleWithSystem (
+    { self', ... }:
     {
       config,
       pkgs,
@@ -8,16 +15,18 @@
     }:
 
     {
-      imports = [
+      imports = with self.nixosModules; [
         inputs.nixos-hardware.nixosModules.microsoft-surface-common
-        self.nixosModules.harryHardware
-        self.nixosModules.base
+        harryHardware
+        desktop
+        base
+        gaming
       ];
 
       networking.hostName = "harry";
 
       # Surface's high-DPI internal panel needs upscaling.
-      programs.niri.package = self.packages.${pkgs.stdenv.hostPlatform.system}.myNiri.wrap {
+      programs.niri.package = self'.packages.myNiri.wrap {
         settings.outputs = lib.mkForce {
           "eDP-1".scale = 1.75;
         };
@@ -91,5 +100,6 @@
           }
         ];
       };
-    };
+    }
+  );
 }

@@ -1,8 +1,14 @@
 { self, inputs, ... }: {
-  flake.nixosModules.systemDesktop =
+  flake.nixosModules.desktop =
     { config, pkgs, ... }:
 
     {
+      imports = with self.nixosModules; [
+        niri
+        homeManager
+        core
+        user
+      ];
       services = {
         greetd = {
           enable = true;
@@ -21,9 +27,12 @@
         printing.enable = true;
         upower.enable = true;
         power-profiles-daemon.enable = true;
+        gvfs.enable = true;
       };
 
       hardware.bluetooth.enable = true;
+
+      programs.dconf.enable = true;
 
       fonts.packages = with pkgs; [
         nerd-fonts.jetbrains-mono
@@ -41,5 +50,19 @@
         XKB_DEFAULT_LAYOUT = "de";
         XKB_DEFAULT_OPTIONS = "lv3:caps_switch";
       };
+
+      environment.systemPackages = with pkgs; [
+        adwaita-icon-theme
+        nautilus
+        gnomeExtensions.appindicator
+        gnome-settings-daemon
+      ];
+
+      home-manager.sharedModules = [
+        {
+          dconf.enable = true;
+          dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
+        }
+      ];
     };
 }

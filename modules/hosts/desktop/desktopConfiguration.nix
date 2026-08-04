@@ -1,17 +1,24 @@
-{ self, inputs, ... }: {
-  flake.nixosModules.desktopConfiguration =
+{
+  self,
+  inputs,
+  moduleWithSystem,
+  ...
+}:
+{
+  flake.nixosModules.desktopConfiguration = moduleWithSystem (
+    { self', ... }:
     {
-      config,
       pkgs,
       lib,
       ...
     }:
 
     {
-      imports = [
-        self.nixosModules.desktopHardware
-        self.nixosModules.base
-        self.nixosModules.gaming
+      imports = with self.nixosModules; [
+        desktopHardware
+        desktop
+        base
+        gaming
       ];
 
       networking.hostName = "desktop";
@@ -23,7 +30,7 @@
       # (same mechanism as NixOS's own module system); mkForce is needed
       # because otherwise the single-output default would just merge
       # alongside these two instead of being replaced.
-      programs.niri.package = self.packages.${pkgs.stdenv.hostPlatform.system}.myNiri.wrap {
+      programs.niri.package = self'.packages.myNiri.wrap {
         settings.outputs = lib.mkForce {
           "HDMI-A-1" = {
             scale = 1;
@@ -75,5 +82,6 @@
           "x-systemd.requires=mnt-wsl-connect.service"
         ];
       };
-    };
+    }
+  );
 }

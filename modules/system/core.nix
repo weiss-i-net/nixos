@@ -1,8 +1,12 @@
 { self, inputs, ... }: {
-  flake.nixosModules.systemCore =
+  flake.nixosModules.core =
     { pkgs, ... }:
 
     {
+      imports = with self.nixosModules; [
+        nixSettings
+      ];
+
       boot.loader.systemd-boot.enable = true;
       boot.loader.efi.canTouchEfiVariables = true;
 
@@ -22,23 +26,20 @@
 
       programs.fish.enable = true;
 
-      nixpkgs.config.allowUnfree = true;
       hardware.enableRedistributableFirmware = true;
-      nix = {
-        settings.experimental-features = [
-          "nix-command"
-          "flakes"
-        ];
-        settings.auto-optimise-store = true;
-        gc = {
-          automatic = true;
-          dates = "weekly";
-          options = "--delete-older-than 30d";
-        };
-      };
 
       zramSwap.enable = true;
 
       system.stateVersion = "26.05";
+
+      networking.networkmanager.enable = true;
+
+      services.pipewire = {
+        enable = true;
+        alsa.enable = true;
+        alsa.support32Bit = true;
+        pulse.enable = true;
+      };
+      security.rtkit.enable = true;
     };
 }
