@@ -14,6 +14,7 @@
         jujutsu
         neovim
         tmux
+        kitty
         goproWebcam
         inputs.nix-index-database.nixosModules.default
       ];
