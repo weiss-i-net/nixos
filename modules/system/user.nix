@@ -24,6 +24,7 @@
           "networkmanager"
           "wheel"
           "video"
+          "gamemode"
         ];
       };
 

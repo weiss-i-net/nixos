@@ -3,7 +3,10 @@ _: {
     { pkgs, ... }:
     {
       programs = {
-        steam.enable = true;
+        steam = {
+          enable = true;
+          gamescopeSession.enable = true;
+        };
         gamemode.enable = true;
         gamescope.enable = true;
       };
@@ -19,6 +22,9 @@ _: {
       # equivalent of Adrenalin's "Overdrive" tab).
       hardware.amdgpu.overdrive.enable = true;
 
-      environment.systemPackages = [ pkgs.discord ];
+      environment.systemPackages = with pkgs; [
+        discord
+        mangohud
+      ];
     };
 }
