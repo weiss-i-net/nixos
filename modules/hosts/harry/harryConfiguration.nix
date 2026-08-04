@@ -26,6 +26,10 @@
 
       networking.hostName = "harry";
 
+      # The release this machine was installed at -- it pins the on-disk
+      # state formats NixOS may assume, so it stays as-is across upgrades.
+      system.stateVersion = "26.05";
+
       # Surface's high-DPI internal panel needs upscaling.
       programs.niri.package = self'.packages.myNiri.wrap {
         settings.outputs = lib.mkForce {

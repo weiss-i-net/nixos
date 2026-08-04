@@ -24,6 +24,10 @@
 
       networking.hostName = "desktop";
 
+      # The release this machine was installed at -- it pins the on-disk
+      # state formats NixOS may assume, so it stays as-is across upgrades.
+      system.stateVersion = "26.05";
+
       # Acer VG271U is the higher-spec (2560x1440@144Hz) primary monitor; LG
       # IPS277 is the lower-spec (1920x1080@60Hz) secondary, placed to its
       # left per the desktop's physical desk layout. `.wrap` re-evaluates

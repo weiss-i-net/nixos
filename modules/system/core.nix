@@ -43,8 +43,6 @@
 
       zramSwap.enable = true;
 
-      system.stateVersion = "26.05";
-
       networking.networkmanager.enable = true;
 
       services.pipewire = {
