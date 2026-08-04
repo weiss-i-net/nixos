@@ -21,6 +21,7 @@
         desktop
         base
         gaming
+        wslMount
       ];
 
       networking.hostName = "harry";
@@ -32,10 +33,7 @@
         };
       };
 
-      boot.kernelModules = [
-        "dw9719"
-        "nbd"
-      ];
+      boot.kernelModules = [ "dw9719" ];
 
       swapDevices = [
         {
@@ -51,24 +49,9 @@
         v4l-utils
       ];
 
-      systemd.services.mnt-wsl-connect = {
-        description = "Connect the WSL ext4.vhdx via qemu-nbd";
-        unitConfig.RequiresMountsFor = "/mnt/c";
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          ExecStart = "${pkgs.qemu-utils}/bin/qemu-nbd -c /dev/nbd0 /mnt/c/Users/janni/AppData/Local/Packages/46932SUSE.openSUSETumbleweed_022rs5jcyhyac/LocalState/ext4.vhdx";
-          ExecStop = "${pkgs.qemu-utils}/bin/qemu-nbd -d /dev/nbd0";
-        };
-      };
-
-      fileSystems."/mnt/wsl" = {
-        device = "/dev/nbd0";
-        fsType = "ext4";
-        options = [
-          "nofail"
-          "x-systemd.requires=mnt-wsl-connect.service"
-        ];
+      wslMount = {
+        enable = true;
+        vhdxPath = "/mnt/c/Users/janni/AppData/Local/Packages/46932SUSE.openSUSETumbleweed_022rs5jcyhyac/LocalState/ext4.vhdx";
       };
 
       sops.secrets."harry-wireguard-private-key" = { };
