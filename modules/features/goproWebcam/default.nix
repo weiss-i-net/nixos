@@ -1,13 +1,11 @@
 {
-  self,
-  inputs,
   moduleWithSystem,
   ...
 }:
 {
   flake.nixosModules.goproWebcam = moduleWithSystem (
     { self', ... }:
-    { config, pkgs, ... }:
+    { config, ... }:
     {
       environment.systemPackages = [ self'.packages.myGopro ];
 

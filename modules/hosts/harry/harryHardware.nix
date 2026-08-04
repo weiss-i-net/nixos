@@ -1,9 +1,8 @@
-{ self, inputs, ... }: {
+_: {
   flake.nixosModules.harryHardware =
     {
       config,
       lib,
-      pkgs,
       modulesPath,
       ...
     }:

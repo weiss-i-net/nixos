@@ -1,5 +1,4 @@
 {
-  self,
   inputs,
   moduleWithSystem,
   ...
@@ -14,8 +13,6 @@
   perSystem =
     {
       pkgs,
-      lib,
-      self',
       ...
     }:
     {

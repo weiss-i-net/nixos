@@ -1,6 +1,6 @@
-{ self, inputs, ... }: {
+{ self, ... }: {
   flake.nixosModules.core =
-    { pkgs, ... }:
+    { ... }:
 
     {
       imports = with self.nixosModules; [

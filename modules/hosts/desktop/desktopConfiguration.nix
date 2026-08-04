@@ -1,6 +1,5 @@
 {
   self,
-  inputs,
   moduleWithSystem,
   ...
 }:
@@ -8,7 +7,6 @@
   flake.nixosModules.desktopConfiguration = moduleWithSystem (
     { self', ... }:
     {
-      pkgs,
       lib,
       ...
     }:

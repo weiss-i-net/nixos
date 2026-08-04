@@ -12,8 +12,8 @@ This repo is a colocated `jj`/`git` repo (both `.jj/` and `.git/` exist). Use Ju
 - `nixos-rebuild build --flake .#<host>` — build a host's system closure without switching (safest way to check a change compiles). Hosts: `desktop`, `harry`.
 - `sudo nixos-rebuild switch --flake .#<host>` — apply on the local machine (only run this if explicitly asked to; it's a live-system change).
 - `nix build .#<packageName>` — build a single wrapped package (e.g. `nix build .#myNeovim`) to check just that module.
-- `nix fmt` — format the tree with `nixfmt-tree` (configured in `modules/formatter.nix`).
-- There is no separate lint/test suite; `nix flake show` and `nixos-rebuild build` are the correctness checks.
+- `nix flake check` — the correctness gate: builds both host closures and every wrapped package (`modules/checks.nix` derives the check set from `nixosConfigurations` and `perSystem.packages`, so new hosts/packages are covered automatically) and verifies the tree is formatted and lint-clean.
+- `nix fmt` — format *and lint-fix* the tree with treefmt (nixfmt + deadnix + statix, configured in `modules/formatter.nix`). deadnix/statix edit in place, so review the diff afterwards.
 - `modules/system/secrets/secrets.yaml` is sops-nix encrypted; edit it with `sops modules/system/secrets/secrets.yaml` (decrypts using the age key at `/var/lib/sops-nix/key.txt` on target hosts). The devShell (`nix develop`) provides `sops` and `age`.
 
 ## Architecture

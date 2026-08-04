@@ -2,7 +2,6 @@
   moduleWithSystem,
   self,
   inputs,
-  lib,
   ...
 }:
 {

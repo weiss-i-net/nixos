@@ -1,4 +1,4 @@
-{ self, inputs, ... }: {
+_: {
   flake.nixosModules.nixSettings = {
     nixpkgs.config.allowUnfree = true;
     nix = {
