@@ -7,8 +7,21 @@
         nixSettings
       ];
 
-      boot.loader.systemd-boot.enable = true;
-      boot.loader.efi.canTouchEfiVariables = true;
+      boot = {
+        loader = {
+          systemd-boot = {
+            enable = true;
+            # Every generation keeps its kernel+initrd on the (small, vfat) ESP
+            # until nix.gc drops the profile 30 days later, so leaving this
+            # unbounded lets a busy rebuild week fill /boot and fail a switch
+            # halfway through.
+            configurationLimit = 10;
+          };
+          efi.canTouchEfiVariables = true;
+        };
+
+        tmp.cleanOnBoot = true;
+      };
 
       time.timeZone = "Europe/Berlin";
       i18n.defaultLocale = "en_US.UTF-8";
