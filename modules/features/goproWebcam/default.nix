@@ -1,8 +1,16 @@
-{ self, inputs, ... }:
 {
-  flake.nixosModules.gopro =
+  self,
+  inputs,
+  moduleWithSystem,
+  ...
+}:
+{
+  flake.nixosModules.goproWebcam = moduleWithSystem (
+    { self', ... }:
     { config, pkgs, ... }:
     {
+      environment.systemPackages = [ self'.packages.myGopro ];
+
       # v4l2loopback backs a persistent /dev/video42 "GoPro Webcam" device
       # that the `gopro` script feeds via ffmpeg, so apps (Discord, browsers)
       # just see it as an ordinary webcam. exclusive_caps=1 is required for
@@ -18,7 +26,8 @@
       # default stateful firewall silently drops it as an unsolicited
       # inbound connection, leaving ffmpeg's UDP listener waiting forever.
       networking.firewall.allowedUDPPorts = [ 8554 ];
-    };
+    }
+  );
 
   perSystem =
     { pkgs, lib, ... }:
@@ -46,7 +55,7 @@
       '';
     in
     {
-      packages.gopro = pkgs.symlinkJoin {
+      packages.myGopro = pkgs.symlinkJoin {
         name = "gopro";
         paths = [
           goproBin
