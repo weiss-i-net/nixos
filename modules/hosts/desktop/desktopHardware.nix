@@ -26,22 +26,38 @@
         extraModulePackages = [ ];
       };
 
+      # zstd:1 is the cheap end of btrfs compression (near-free on this CPU,
+      # still a large win on /nix); noatime drops a write per read. Both only
+      # affect data written from here on -- `btrfs filesystem defragment -r
+      # -czstd <mountpoint>` rewrites what's already on disk.
       fileSystems = {
         "/" = {
           device = "/dev/disk/by-uuid/bab85867-fd1b-4cf0-85ad-30e6ac523632";
           fsType = "btrfs";
+          options = [
+            "compress=zstd:1"
+            "noatime"
+          ];
         };
 
         "/home" = {
           device = "/dev/disk/by-uuid/bab85867-fd1b-4cf0-85ad-30e6ac523632";
           fsType = "btrfs";
-          options = [ "subvol=home" ];
+          options = [
+            "subvol=home"
+            "compress=zstd:1"
+            "noatime"
+          ];
         };
 
         "/nix" = {
           device = "/dev/disk/by-uuid/bab85867-fd1b-4cf0-85ad-30e6ac523632";
           fsType = "btrfs";
-          options = [ "subvol=nix" ];
+          options = [
+            "subvol=nix"
+            "compress=zstd:1"
+            "noatime"
+          ];
         };
 
         "/boot" = {
@@ -90,6 +106,15 @@
       };
 
       swapDevices = [ ];
+
+      # Scrubbing "/" covers the whole device, subvolumes included -- btrfs
+      # only detects bit rot when it reads a block, so without this a stale
+      # corruption in cold data goes unnoticed until something needs it.
+      services.btrfs.autoScrub = {
+        enable = true;
+        interval = "monthly";
+        fileSystems = [ "/" ];
+      };
 
       nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
       hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

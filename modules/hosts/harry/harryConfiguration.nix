@@ -48,6 +48,10 @@
 
       services.thermald.enable = true;
 
+      # Battery-only concern, so it lives here rather than in the shared
+      # desktop module -- there is nothing to switch profiles on a tower.
+      services.power-profiles-daemon.enable = true;
+
       environment.systemPackages = with pkgs; [
         libcamera
         v4l-utils

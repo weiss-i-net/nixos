@@ -26,7 +26,6 @@
         };
         printing.enable = true;
         upower.enable = true;
-        power-profiles-daemon.enable = true;
         gvfs.enable = true;
       };
 
@@ -54,8 +53,6 @@
       environment.systemPackages = with pkgs; [
         adwaita-icon-theme
         nautilus
-        gnomeExtensions.appindicator
-        gnome-settings-daemon
       ];
 
       home-manager.sharedModules = [
