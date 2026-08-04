@@ -61,21 +61,28 @@
         # back to Xwayland's built-in "us" default.
         XKB_DEFAULT_LAYOUT = "de";
         XKB_DEFAULT_OPTIONS = "lv3:caps_switch";
+        QT_QPA_PLATFORMTHEME = "gtk3";
       };
 
       environment.systemPackages = with pkgs; [
         adwaita-icon-theme
         fileManager
-        udiskie # also included here, so the icon gets installed
       ];
 
       home-manager.sharedModules = [
         {
           dconf.enable = true;
-          dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
           services.udiskie = {
             enable = true;
             settings.program_options.file_manager = lib.getExe fileManager;
+          };
+          gtk = {
+            enable = true;
+            colorScheme = "dark";
+            theme = {
+              package = pkgs.gnome-themes-extra;
+              name = "Adwaita-dark";
+            };
           };
         }
       ];
