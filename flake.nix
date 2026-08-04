@@ -41,23 +41,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # The user-facing config skeleton (lua/plugins/*.lua overrides, community.lua,
-    # polish.lua) that AstroNvim's own `nix flake init -t ...neovim` template points
-    # users at. Consumed directly as plain lazy-spec-shaped lua files by
-    # modules/features/neovim/astronvim-bridge.lua -- not via its own init.lua/lazy,
-    # since those bootstrap lazy.nvim and git-clone plugins, which we don't use.
+    # AstroNvim's official user config template, used whole and unmodified: it is
+    # symlinked to ~/.config/nvim by modules/features/neovim.nix, and its own
+    # init.lua/lazy_setup.lua bootstrap lazy.nvim, which pulls AstroNvim's core
+    # and the rest of the plugin set at runtime.
     astronvim-template = {
       url = "github:AstroNvim/template";
-      flake = false;
-    };
-
-    # AstroNvim's actual framework core. Only its lua/astronvim/plugins/*.lua spec
-    # files and lua/astronvim/plugins/configs/*.lua config functions are used (by
-    # the astronvim-bridge resolver); every plugin they reference comes from
-    # nixpkgs.vimPlugins instead of lazy.nvim's git-clone-based installs. Pinned to
-    # the same major version astronvim-template's `lazy_setup.lua` requests (^6).
-    astronvim-core = {
-      url = "github:AstroNvim/AstroNvim/v6.0.6";
       flake = false;
     };
   };
