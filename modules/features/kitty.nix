@@ -1,4 +1,16 @@
-{ self, inputs, ... }: {
+{
+  self,
+  inputs,
+  moduleWithSystem,
+  ...
+}:
+{
+  flake.nixosModules.kitty = moduleWithSystem (
+    { self', ... }: {
+      environment.systemPackages = [ self'.packages.myKitty ];
+    }
+  );
+
   perSystem =
     {
       pkgs,

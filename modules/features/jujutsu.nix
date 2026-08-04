@@ -1,4 +1,16 @@
-{ self, inputs, ... }: {
+{
+  self,
+  inputs,
+  moduleWithSystem,
+  ...
+}:
+{
+  flake.nixosModules.jujutsu = moduleWithSystem (
+    { self', ... }: {
+      environment.systemPackages = [ self'.packages.myJujutsu ];
+    }
+  );
+
   perSystem =
     {
       pkgs,

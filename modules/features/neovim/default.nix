@@ -1,5 +1,19 @@
-{ self, inputs, ... }:
 {
+  self,
+  inputs,
+  moduleWithSystem,
+  ...
+}:
+{
+
+  flake.nixosModules.neovim = moduleWithSystem (
+    { self', ... }: {
+      programs.neovim = {
+        enable = true;
+        package = self'.packages.myNeovim;
+      };
+    }
+  );
 
   perSystem =
     { pkgs, ... }:

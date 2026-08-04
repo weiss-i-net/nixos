@@ -1,4 +1,15 @@
-{ self, inputs, ... }: {
+{
+  self,
+  inputs,
+  moduleWithSystem,
+  ...
+}:
+{
+  flake.nixosModules.noctalia = moduleWithSystem (
+    { self', ... }: {
+      environment.systemPackages = [ self'.packages.myNoctalia ];
+    }
+  );
 
   perSystem = { pkgs, ... }: {
     packages.myNoctalia = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {

@@ -1,4 +1,16 @@
-{ self, inputs, ... }: {
+{
+  self,
+  inputs,
+  moduleWithSystem,
+  ...
+}:
+{
+  flake.nixosModules.tmux = moduleWithSystem (
+    { self', ... }: {
+      environment.systemPackages = [ self'.packages.myTmux ];
+    }
+  );
+
   perSystem =
     {
       pkgs,
