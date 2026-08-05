@@ -5,7 +5,6 @@
       system,
       pkgs,
       self',
-      lib,
       ...
     }:
     let
@@ -25,7 +24,6 @@
           pkgs.sops
           pkgs.age
         ];
-        shellHook = "exec ${lib.getExe pkgs.fish}";
       };
     };
 }
