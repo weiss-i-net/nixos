@@ -11,17 +11,10 @@ _: {
         gamescope.enable = true;
       };
 
-      # amdgpu's default "auto" fan/power behavior runs noticeably hotter and
-      # louder under load than AMD's Windows driver. LACT gives a GUI+daemon
-      # to set a custom fan curve/power limit (like Adrenalin does on
-      # Windows) that persists across reboots.
-      services.lact.enable = true;
-
-      # LACT can only do fan/power limit control without this; overdrive
-      # mode is what unlocks clock/voltage curve tuning (amdgpu's
-      # equivalent of Adrenalin's "Overdrive" tab).
-      hardware.amdgpu.overdrive.enable = true;
-
+      # GPU-vendor-specific tuning (fan curves, overdrive) deliberately stays
+      # out of this bundle -- it is imported by every gaming-capable host,
+      # including Intel ones, so it may only contain things that hold for any
+      # GPU. See desktopConfiguration.nix for the amdgpu side.
       environment.systemPackages = with pkgs; [
         discord
         mangohud

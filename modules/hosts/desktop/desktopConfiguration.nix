@@ -57,6 +57,19 @@
         };
       };
 
+      # amdgpu's default "auto" fan/power behavior runs noticeably hotter and
+      # louder under load than AMD's Windows driver. LACT gives a GUI+daemon
+      # to set a custom fan curve/power limit (like Adrenalin does on
+      # Windows) that persists across reboots. Host-specific because this is
+      # the only machine with an AMD GPU -- harry's is Intel, where the LACT
+      # daemon would have nothing to drive.
+      services.lact.enable = true;
+
+      # LACT can only do fan/power limit control without this; overdrive
+      # mode is what unlocks clock/voltage curve tuning (amdgpu's
+      # equivalent of Adrenalin's "Overdrive" tab).
+      hardware.amdgpu.overdrive.enable = true;
+
       # The WSL2 openSUSE Tumbleweed instance stores its root filesystem as a
       # dynamically-sized VHDX (Hyper-V disk image) containing a raw,
       # unpartitioned ext4 filesystem, so it can't be listed directly in
