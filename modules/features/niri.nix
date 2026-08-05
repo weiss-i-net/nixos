@@ -38,7 +38,7 @@
 
             xwayland-satellite.path = lib.getExe pkgs.xwayland-satellite;
 
-            # Matches environment.variables.XCURSOR_THEME/SIZE in common.nix --
+            # Matches environment.variables.XCURSOR_THEME/SIZE in system/desktop.nix --
             # without an explicit theme, niri falls back to an oversized
             # built-in placeholder cursor.
             cursor = {

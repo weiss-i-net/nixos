@@ -75,7 +75,7 @@
       # unpartitioned ext4 filesystem, so it can't be listed directly in
       # fileSystems. qemu-nbd exposes it as /dev/nbd0 (a real block device
       # NixOS can then mount), which needs the Windows partition (/mnt/c,
-      # see hardware.nix) mounted first.
+      # see desktopHardware.nix) mounted first.
       wslMount = {
         enable = true;
         vhdxPath = "/mnt/c/Users/Jannik/AppData/Local/wsl/{541c815d-5aee-4426-9d51-93b8a5a9b4d3}/ext4.vhdx";
