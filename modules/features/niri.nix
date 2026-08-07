@@ -73,8 +73,8 @@
             binds = {
               # apps
               "Mod+Return".spawn-sh = kitty;
-              "Mod+S".spawn-sh = "${noctalia} ipc call launcher toggle";
-              "Mod+V".spawn-sh = "${noctalia} ipc call launcher clipboard";
+              "Mod+S".spawn-sh = "${noctalia} msg panel-toggle launcher";
+              "Mod+V".spawn-sh = "${noctalia} msg panel-toggle clipboard";
 
               # help / overview
               # niri binds always match a physical key's *unshifted* keysym plus whatever
