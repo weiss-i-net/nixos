@@ -13,13 +13,77 @@
           programs.noctalia = {
             enable = true;
             package = self'.packages.myNoctalia;
+            # Ported from `noctalia config export merged` -- preferences only.
+            # The app-managed runtime keys stay out on purpose: the lockscreen
+            # widget geometry is per-output (DP-1 here, eDP-1 on harry) and this
+            # module is shared by both hosts, and wallpaper.last/monitors record
+            # absolute /home paths that would not survive evaluation.
+            settings = {
+              theme.builtin = "Ayu";
 
-            # Deliberately empty: with no settings the module writes no
-            # xdg.configFile, which leaves ~/.config/noctalia/config.toml a
-            # plain writable file that noctalia's own settings UI can persist
-            # to. Moving a config in here trades that for build-time
-            # validation and a read-only store symlink.
-            settings = { };
+              shell = {
+                animation.speed = 2.0;
+                panel.open_near_click_control_center = true;
+              };
+
+              weather.enabled = false;
+
+              bar.default = {
+                start = [
+                  "wallpaper"
+                  "workspaces"
+                ];
+                end = [
+                  "media"
+                  "tray"
+                  "notifications"
+                  "network"
+                  "bluetooth"
+                  "volume"
+                  "brightness"
+                  "battery"
+                  "session"
+                ];
+              };
+
+              idle = {
+                behavior_order = [
+                  "lock"
+                  "screen-off"
+                  "lock-and-suspend"
+                ];
+                behavior = {
+                  lock = {
+                    action = "lock";
+                    enabled = false;
+                    timeout = 600.0;
+                  };
+                  "screen-off" = {
+                    action = "screen_off";
+                    enabled = true;
+                    timeout = 660.0;
+                  };
+                  "lock-and-suspend" = {
+                    action = "lock_and_suspend";
+                    enabled = false;
+                    timeout = 900.0;
+                  };
+                };
+              };
+
+              lockscreen_widgets.enabled = false;
+
+              widget = {
+                bluetooth.hide_when_no_connected_device = true;
+                media.hide_when_no_media = true;
+                network.show_label = false;
+              };
+
+              wallpaper = {
+                directory = ./wallpapers;
+                default.path = ./wallpapers/nix-wallpaper-binary-black_8k.png;
+              };
+            };
           };
         }
       ];
