@@ -17,6 +17,7 @@
         desktop
         base
         gaming
+        devel
         wslMount
       ];
 
