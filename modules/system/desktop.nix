@@ -5,6 +5,7 @@
     {
       imports = with self.nixosModules; [
         niri
+        noctalia
         homeManager
         core
         user

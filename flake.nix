@@ -41,6 +41,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # noctalia v5 is a native C++ rewrite of the old Quickshell/QML shell, and
+    # nixpkgs still packages only the 4.x line -- so both the package and the
+    # home-manager module that configures it come from upstream's own flake.
+    # Tracks main: v5 has no stable tag yet, only v5.0.0-beta.*.
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # AstroNvim's official user config template, used whole and unmodified: it is
     # symlinked to ~/.config/nvim by modules/features/neovim.nix, and its own
     # init.lua/lazy_setup.lua bootstrap lazy.nvim, which pulls AstroNvim's core
