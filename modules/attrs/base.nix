@@ -16,7 +16,10 @@
       ];
       programs.nix-index-database.comma.enable = true;
 
+      #services.teamviewer.enable = true;
       environment.systemPackages = with pkgs; [
+        #teamviewer
+        git
         busybox
         fishPlugins.tide
         thunderbird
@@ -24,6 +27,11 @@
         zotero
         kdePackages.okular
         wdisplays
+
+        nautilus
+        showtime
+        decibels
+        loupe
       ];
     }
   );
