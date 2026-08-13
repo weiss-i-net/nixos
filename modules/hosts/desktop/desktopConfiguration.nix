@@ -19,9 +19,14 @@
         gaming
         devel
         wslMount
+        remoteBuild
       ];
 
       networking.hostName = "desktop";
+
+      # 16 threads and always on mains power, so this is the machine harry
+      # offloads its builds to -- see remoteBuild.client on harry.
+      remoteBuild.server.enable = true;
 
       # The release this machine was installed at -- it pins the on-disk
       # state formats NixOS may assume, so it stays as-is across upgrades.

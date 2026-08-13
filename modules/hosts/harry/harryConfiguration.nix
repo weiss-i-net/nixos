@@ -23,9 +23,20 @@
         gaming
         devel
         wslMount
+        remoteBuild
       ];
 
       networking.hostName = "harry";
+
+      # This Surface is slow and thermally limited, so builds go to desktop
+      # whenever it's reachable on the LAN (nix falls back to building locally
+      # when it isn't). Addressed by IP rather than name because the LAN has no
+      # local DNS worth trusting -- keep the lease reserved on the router.
+      remoteBuild.client = {
+        enable = true;
+        hostName = "172.16.58.56";
+        hostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGVZzvjJ7CEXey/SJo2bbkzZsZ9JDxHLJYeTP/DXYaq+";
+      };
 
       # The release this machine was installed at -- it pins the on-disk
       # state formats NixOS may assume, so it stays as-is across upgrades.
