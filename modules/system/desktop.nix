@@ -54,6 +54,7 @@
       ];
 
       environment.variables = {
+        EDITOR = "nvim";
         XCURSOR_THEME = "Adwaita";
         XCURSOR_SIZE = "24";
         # gamescope spawns its own private Xwayland per-instance rather than using
