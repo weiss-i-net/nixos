@@ -90,6 +90,7 @@
           "fritz.box"
         ];
         privateKeyFile = config.sops.secrets."harry-wireguard-private-key".path;
+        mtu = 1280;
         peers = [
           {
             publicKey = "nKFJElLkeRgS0WqYt4TONILr5qFJia1+MA+wxyJMY0E=";
@@ -98,7 +99,7 @@
               "192.168.178.0/24"
               "fd00::/64"
             ];
-            endpoint = "zvzhasipdh0g65fi.myfritz.net:55974"; # "vpn.jhiller.me:55974";
+            endpoint = "vpn.jhiller.me:55974";
             persistentKeepalive = 25;
           }
         ];

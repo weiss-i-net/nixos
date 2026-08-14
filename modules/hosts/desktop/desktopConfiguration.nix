@@ -8,6 +8,7 @@
     { self', ... }:
     {
       lib,
+      config,
       ...
     }:
 
@@ -84,6 +85,36 @@
       wslMount = {
         enable = true;
         vhdxPath = "/mnt/c/Users/Jannik/AppData/Local/wsl/{541c815d-5aee-4426-9d51-93b8a5a9b4d3}/ext4.vhdx";
+      };
+
+      sops.secrets."desktop-wireguard-private-key" = { };
+      sops.secrets."desktop-wireguard-psk" = { };
+      networking.wg-quick.interfaces.fritzbox = {
+        address = [
+          "192.168.178.205/24"
+          "fd00::205/64"
+        ];
+        dns = [
+          "192.168.178.36"
+          "192.168.178.1"
+          "fd00::ec"
+          "fd00::4a5d:35ff:fea4:ff42"
+          "fritz.box"
+        ];
+        privateKeyFile = config.sops.secrets."desktop-wireguard-private-key".path;
+        mtu = 1280;
+        peers = [
+          {
+            publicKey = "nKFJElLkeRgS0WqYt4TONILr5qFJia1+MA+wxyJMY0E=";
+            presharedKeyFile = config.sops.secrets."desktop-wireguard-psk".path;
+            allowedIPs = [
+              "192.168.178.0/24"
+              "fd00::/64"
+            ];
+            endpoint = "vpn.jhiller.me:55974";
+            persistentKeepalive = 25;
+          }
+        ];
       };
     }
   );
