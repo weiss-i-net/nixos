@@ -1,7 +1,10 @@
-_: {
+{ self, ... }: {
   flake.nixosModules.gaming =
     { pkgs, ... }:
     {
+      imports = with self.nixosModules; [
+        prismlauncher
+      ];
       programs = {
         steam = {
           enable = true;
