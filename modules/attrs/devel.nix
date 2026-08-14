@@ -15,6 +15,8 @@
       ];
 
       environment.systemPackages = with pkgs; [
+        ripgrep
+        fd
         git
         claude-code
         devenv
