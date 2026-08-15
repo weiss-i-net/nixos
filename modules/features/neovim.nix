@@ -9,6 +9,11 @@
     { self', ... }:
     {
       environment.systemPackages = [ self'.packages.myNeovim ];
+
+      # Set here, not in system/desktop.nix: nvim only exists where this module
+      # is imported, and desktop does not import it.
+      environment.sessionVariables.EDITOR = "nvim";
+
       home-manager.sharedModules = [
         {
           xdg.configFile = {
@@ -46,8 +51,8 @@
       # An otherwise bare neovim -- no specs, no generated config -- wrapped only
       # to carry AstroNvim's runtime dependencies. The wrapper puts them on PATH
       # for nvim's own child processes instead of installing them into the user
-      # profile, which keeps a toolchain that exists solely for treesitter and
-      # mason out of the interactive shell.
+      # profile, which keeps the compilers and downloaders that exist solely for
+      # treesitter and mason out of the interactive shell.
       packages.myNeovim = inputs.wrapper-modules.wrappers.neovim.wrap {
         inherit pkgs;
         runtimePkgs = with pkgs; [

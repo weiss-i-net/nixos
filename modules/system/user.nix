@@ -1,6 +1,11 @@
 { self, ... }: {
   flake.nixosModules.user =
-    { config, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     {
       imports = with self.nixosModules; [
         homeManager
@@ -24,8 +29,10 @@
           "networkmanager"
           "wheel"
           "video"
-          "gamemode"
-        ];
+        ]
+        # The group only exists when attrs/gaming is imported; listing it
+        # unconditionally breaks activation on a host without that bundle.
+        ++ lib.optional config.programs.gamemode.enable "gamemode";
       };
 
       home-manager.users.jannik = {

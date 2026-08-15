@@ -53,8 +53,10 @@
         noto-fonts-color-emoji
       ];
 
-      environment.variables = {
-        EDITOR = "nvim";
+      # sessionVariables, not variables: greetd launches niri-session directly
+      # rather than through a login shell, so /etc/set-environment is never
+      # sourced and anything set there misses the graphical session entirely.
+      environment.sessionVariables = {
         XCURSOR_THEME = "Adwaita";
         XCURSOR_SIZE = "24";
         # gamescope spawns its own private Xwayland per-instance rather than using

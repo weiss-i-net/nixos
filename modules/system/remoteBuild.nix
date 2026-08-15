@@ -46,6 +46,7 @@
               # authenticates by key, so nothing here needs a password prompt.
               PasswordAuthentication = false;
               PermitRootLogin = "no";
+              AllowUsers = [ "nixremote" ];
             };
           };
 

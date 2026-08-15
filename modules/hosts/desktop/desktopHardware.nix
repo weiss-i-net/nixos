@@ -119,6 +119,8 @@ _: {
       hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
       # Steam's own runtime and many Proton prefixes are still 32-bit, so the
       # 32-bit GL/Vulkan userspace has to be installed alongside the 64-bit one.
+      # programs.steam sets both too, but they stay here: graphics is a property
+      # of the machine, not of the gaming bundle.
       hardware.graphics = {
         enable = true;
         enable32Bit = true;

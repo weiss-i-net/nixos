@@ -16,11 +16,8 @@
       ];
       programs.nix-index-database.comma.enable = true;
 
-      #services.teamviewer.enable = true;
       environment.systemPackages = with pkgs; [
-        #teamviewer
         git
-        busybox
         fishPlugins.tide
         thunderbird
         inputs'.zen-browser.packages.default
