@@ -11,7 +11,30 @@
       environment.systemPackages = [ self'.packages.myNeovim ];
       home-manager.sharedModules = [
         {
-          xdg.configFile."nvim".source = inputs.astronvim-template;
+          xdg.configFile = {
+            # Linked file-by-file rather than as a single directory symlink, so
+            # that repo-managed spec files can be dropped in alongside the
+            # template's own without vendoring the whole tree.
+            "nvim" = {
+              source = inputs.astronvim-template;
+              recursive = true;
+            };
+
+            # The template ships astrolsp.lua disabled, so AstroNvim enables no
+            # server that mason did not install. hls has to come from nix --
+            # mason's prebuilt binaries do not run on NixOS -- which means it is
+            # invisible to AstroNvim unless it is named here.
+            "nvim/lua/plugins/haskell.lua".text = ''
+              ---@type LazySpec
+              return {
+                "AstroNvim/astrolsp",
+                ---@type AstroLSPOpts
+                opts = {
+                  servers = { "hls" },
+                },
+              }
+            '';
+          };
         }
       ];
     }
@@ -36,6 +59,16 @@
           cargo
           nodejs
           python3
+
+          # Haskell toolchain for hls, which mason cannot install here (it ships
+          # prebuilt binaries that do not run on NixOS). runtimePkgs land at the
+          # *end* of PATH, so a project's own devShell toolchain shadows these --
+          # they are only the fallback for files outside such a shell.
+          ghc
+          cabal-install
+          stack
+          haskell-language-server
+          ormolu
 
           # lazy.nvim clones the plugin set itself on first launch, and
           # mason.nvim (LSP/formatter/linter installer) downloads its tools at
