@@ -83,19 +83,6 @@ _: {
           ];
         };
 
-        # Second internal NTFS partition (Windows "G:"). Same dirty-bit
-        # situation as /mnt/c above.
-        "/mnt/g" = {
-          device = "/dev/disk/by-uuid/0CDAE03DDAE02524";
-          fsType = "ntfs3";
-          options = [
-            "nofail"
-            "uid=1000"
-            "gid=100"
-            "force"
-          ];
-        };
-
         # 5.5TB internal HDD holding the Plex media library.
         "/mnt/plex" = {
           device = "/dev/disk/by-uuid/4CACC5F1ACC5D59C";
