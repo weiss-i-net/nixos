@@ -83,17 +83,37 @@ _: {
           ];
         };
 
-        # 5.5TB internal HDD holding the Plex media library.
+        # 5.5TB internal HDD holding the Plex media library. Same options as
+        # /mnt/c above and for the same reasons -- it is the second NTFS volume
+        # Windows shares, so it picks up the same dirty bit on every Fast
+        # Startup shutdown.
         "/mnt/plex" = {
           device = "/dev/disk/by-uuid/4CACC5F1ACC5D59C";
           fsType = "ntfs3";
           options = [
             "nofail"
-            "uid=${builtins.toString config.users.users.restic.uid}"
-            "gid=${builtins.toString config.users.groups.restic.gid}"
-            "dmask=007"
-            "fmask=117"
+            "uid=1000"
+            "gid=100"
             "force"
+          ];
+        };
+
+        # Offsite copies of echo's backup stores, pulled by backupMirror. The
+        # parent subvolume is what gets mounted rather than the individual
+        # mirrors, so the read-only snapshots under snapshots/ live on the same
+        # filesystem while staying outside every rsync --delete target.
+        # The subvolumes have to exist before this can mount. "/" here is
+        # subvolid=5 -- the btrfs top level, not a subvolume of its own -- so
+        # they are created directly as /backup, /backup/urbackup and
+        # /backup/restic, with no temporary top-level mount needed.
+        "/mnt/backup" = {
+          device = "/dev/disk/by-uuid/bab85867-fd1b-4cf0-85ad-30e6ac523632";
+          fsType = "btrfs";
+          options = [
+            "subvol=backup"
+            "compress=zstd:1"
+            "noatime"
+            "nofail"
           ];
         };
       };

@@ -7,7 +7,6 @@
   flake.nixosModules.desktopConfiguration = moduleWithSystem (
     { self', ... }:
     {
-      pkgs,
       lib,
       config,
       ...
@@ -22,6 +21,7 @@
         devel
         wslMount
         remoteBuild
+        backupMirror
       ];
 
       networking.hostName = "desktop";
@@ -118,40 +118,76 @@
         ];
       };
 
-      services.restic.server = {
+      # This machine is echo's offsite copy. Both of echo's backup stores live
+      # on the same NFS export there, so one restricted key rooted at
+      # /mnt/dlink_nas covers both -- rrsync only confines to a single
+      # directory, and the alternative is maintaining two keypairs to protect
+      # data this host already holds a full copy of.
+      #
+      # Pulling rather than accepting a push is what lets this host expose
+      # nothing: the previous restic REST server ran --no-auth on port 8000, so
+      # anything on the home LAN could write into the repo.
+      backupMirror = {
         enable = true;
-        appendOnly = true;
-        dataDir = "/mnt/plex/echo_restic_repo";
-        extraFlags = [ "--no-auth" ];
-      };
-      networking.firewall.interfaces.fritzbox.allowedTCPPorts = [ 8000 ];
+        path = "/mnt/backup";
 
-      sops.secrets."echo-restic-password" = {
-        owner = "restic";
-      };
-      systemd.services.restic-prune = {
-        serviceConfig = {
-          Type = "oneshot";
-          User = "restic";
-          Environment = [
-            "RESTIC_REPOSITORY=/mnt/plex/echo_restic_repo"
-            "RESTIC_PASSWORD_FILE=${config.sops.secrets."echo-restic-password".path}"
-          ];
+        remote = {
+          host = "192.168.178.36";
+          user = "jannik";
+          hostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGKTNdFDUmkqJYB/P0rgDQHZaf2gv+i7xbuDYR4L8clb";
+          # echo sits on the home LAN; this host only reaches it through the
+          # tunnel, so a pull started before wg is up cannot resolve or connect.
+          interface = "fritzbox";
         };
-        path = [ pkgs.restic ];
-        script = ''
-          restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --keep-yearly unlimited --prune
-        '';
+
+        mirrors = {
+          # A restic repo is a directory of immutable, atomically-renamed pack
+          # files, so a plain rsync gives a byte-identical replica -- no
+          # re-packing, no index rebuild, and no repo password needed here.
+          # rsync walks alphabetically, so data/ lands before index/ and
+          # snapshots/: a run overlapping a backup on echo still yields a valid
+          # repo, just missing the newest snapshot until the next run.
+          restic = {
+            remotePath = "echo_restic_repo";
+            # restic encrypts every blob and this is a v2 repo, so the packs
+            # are zstd-compressed before that too -- the bytes on the wire are
+            # incompressible. --skip-compress cannot exclude them either,
+            # since it keys off file extensions and pack files are named after
+            # their own hash with none.
+            compress = false;
+            # echo's own cron fires at 04:00 and ends with restic forget
+            # --prune, which deletes packs and rewrites indexes. Pulling
+            # through that window risks copying a rewritten index alongside
+            # packs it no longer matches, so this waits well clear of it
+            # rather than racing a job whose duration scales with churn.
+            onCalendar = "*-*-* 05:30:00";
+          };
+
+          # UrBackup already deduplicates via hardlinks and .directory_pool, so
+          # -H is the whole point: without it this mirror inflates from 163GiB
+          # to 206GiB and loses the structure UrBackup restores from. The tree
+          # includes UrBackup's own nightly copy of backup_server*.db (written
+          # ~03:10), which is what makes the mirror a directly usable storage
+          # folder rather than something that has to be unpacked first.
+          # urbackup_tmp_files is live scratch and never worth transferring.
+          #
+          # Staggered after the restic pull so the two do not split the
+          # tunnel between them, and well before UrBackup's own backups start
+          # around midday -- there is no genuinely quiet window, but this is
+          # the calmest one.
+          urbackup = {
+            remotePath = "urbackup";
+            hardLinks = true;
+            excludes = [ "/urbackup_tmp_files/" ];
+            onCalendar = "*-*-* 07:00:00";
+          };
+        };
       };
 
-      systemd.timers.restic-prune = {
-        wantedBy = [ "timers.target" ];
-        timerConfig = {
-          OnCalendar = "weekly";
-          Persistent = true;
-          RandomizedDelaySec = "1h";
-        };
-      };
+      # Not used by the mirror itself, which copies the repo without opening it.
+      # This is here so `restic check` can be run against /mnt/backup/restic to
+      # prove the offsite copy is actually restorable.
+      sops.secrets."echo-restic-password" = { };
     }
   );
 }
