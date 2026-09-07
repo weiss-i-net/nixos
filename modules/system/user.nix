@@ -29,6 +29,7 @@
           "networkmanager"
           "wheel"
           "video"
+          "restic"
         ]
         # The group only exists when attrs/gaming is imported; listing it
         # unconditionally breaks activation on a host without that bundle.

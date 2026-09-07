@@ -87,7 +87,14 @@ _: {
         "/mnt/plex" = {
           device = "/dev/disk/by-uuid/4CACC5F1ACC5D59C";
           fsType = "ntfs3";
-          options = [ "nofail" ];
+          options = [
+            "nofail"
+            "uid=${builtins.toString config.users.users.restic.uid}"
+            "gid=${builtins.toString config.users.groups.restic.gid}"
+            "dmask=007"
+            "fmask=117"
+            "force"
+          ];
         };
       };
 

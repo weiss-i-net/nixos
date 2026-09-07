@@ -7,6 +7,7 @@
   flake.nixosModules.desktopConfiguration = moduleWithSystem (
     { self', ... }:
     {
+      pkgs,
       lib,
       config,
       ...
@@ -115,6 +116,41 @@
             persistentKeepalive = 25;
           }
         ];
+      };
+
+      services.restic.server = {
+        enable = true;
+        appendOnly = true;
+        dataDir = "/mnt/plex/echo_restic_repo";
+        extraFlags = [ "--no-auth" ];
+      };
+      networking.firewall.interfaces.fritzbox.allowedTCPPorts = [ 8000 ];
+
+      sops.secrets."echo-restic-password" = {
+        owner = "restic";
+      };
+      systemd.services.restic-prune = {
+        serviceConfig = {
+          Type = "oneshot";
+          User = "restic";
+          Environment = [
+            "RESTIC_REPOSITORY=/mnt/plex/echo_restic_repo"
+            "RESTIC_PASSWORD_FILE=${config.sops.secrets."echo-restic-password".path}"
+          ];
+        };
+        path = [ pkgs.restic ];
+        script = ''
+          restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --keep-yearly unlimited --prune
+        '';
+      };
+
+      systemd.timers.restic-prune = {
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "weekly";
+          Persistent = true;
+          RandomizedDelaySec = "1h";
+        };
       };
     }
   );
