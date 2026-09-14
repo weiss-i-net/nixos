@@ -58,5 +58,47 @@
       systemd.tmpfiles.rules = [
         "d /home/jannik/.ssh 0700 jannik users -"
       ];
+
+      systemd.tmpfiles.settings."10-syncthing"."/var/lib/syncthing".d = {
+        user = "jannik";
+        group = "users";
+        mode = "0700";
+      };
+
+      services.syncthing = {
+        enable = true;
+        user = "jannik";
+        group = "users";
+        openDefaultPorts = true;
+        settings = {
+          devices = {
+            "echo" = {
+              id = "SWPQMBT-KAGW6IV-36DT2JQ-5NO3ARS-IE2Y7RS-YEDL6CM-YAYG5PU-LIHAUAA";
+            };
+            "Pixel 10 Pro" = {
+              id = "NSKUTN7-L67ZNFE-QWWJERD-VSLM2OP-MXUUP6R-GFD35JV-TKXBVUW-3OGCBQH";
+            };
+          };
+          folders = {
+            "main" = {
+              path = "/home/jannik/syncthing";
+              id = "ute3n-npcpt";
+              devices = [
+                "echo"
+                "Pixel 10 Pro"
+              ];
+              ignorePatterns = [
+                "bin"
+                "build"
+                "__pycache__"
+                ".devenv"
+                ".venv"
+                "a.out"
+                "target"
+              ];
+            };
+          };
+        };
+      };
     };
 }
