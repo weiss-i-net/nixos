@@ -16,6 +16,28 @@
               source = inputs.astronvim-template;
               recursive = true;
             };
+            # The syncthing folder is mirrored to other devices, so an edit is
+            # only useful once it hits disk — don't make that wait for a :w.
+            "nvim/lua/plugins/autosaveSyncthing.lua" = {
+              text = ''
+                return {
+                  "AstroNvim/astrocore",
+                  ---@type AstroCoreOpts
+                  opts = {
+                    autocmds = {
+                      autosave_syncthing = {
+                        {
+                          event = { "InsertLeave", "TextChanged", "FocusLost" },
+                          pattern = vim.fn.expand("~/syncthing") .. "/*",
+                          desc = "Autosave files in the syncthing folder",
+                          command = "silent! update",
+                        },
+                      },
+                    },
+                  },
+                }
+              '';
+            };
             "nvim/lua/plugins/systemlsps.lua" = {
               text = ''
                 return {
