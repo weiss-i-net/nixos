@@ -32,6 +32,63 @@
             wpctl = lib.getExe' pkgs.wireplumber "wpctl";
             brightnessctl = lib.getExe pkgs.brightnessctl;
             playerctl = lib.getExe pkgs.playerctl;
+            ps = lib.getExe' pkgs.procps "ps";
+            readlink = lib.getExe' pkgs.coreutils "readlink";
+
+            # niri has no "spawn in the focused window's directory" action, so
+            # derive it: ask niri for the focused window's pid, find the program
+            # running in the foreground of that terminal, and read its cwd. Only
+            # done for kitty windows -- any other app's cwd is meaningless as a
+            # terminal starting point.
+            kittyInCwd = pkgs.writeShellScript "kitty-in-cwd" ''
+              set -u
+
+              dir=""
+              window=$(${lib.getExe' pkgs.niri "niri"} msg --json focused-window 2>/dev/null) || window=""
+
+              if [ -n "$window" ]; then
+                app=$(${lib.getExe pkgs.jq} -r '.app_id // ""' <<<"$window")
+                pid=$(${lib.getExe pkgs.jq} -r '.pid // 0' <<<"$window")
+
+                if [ "$app" = kitty ] && [ "$pid" -gt 0 ]; then
+                  # kitty's own cwd is useless (it never follows the shell), and so is
+                  # simply descending to its newest child -- kitty keeps ttyless
+                  # "kitten" helpers sitting in $HOME alongside the shell. The shell is
+                  # the child that owns a pty, so pick that one.
+                  shell=""
+                  tty=""
+                  while read -r childPid childTty; do
+                    if [ "$childTty" != "?" ]; then
+                      shell=$childPid
+                      tty=$childTty
+                      break
+                    fi
+                  done < <(${ps} -o pid=,tty= --ppid "$pid")
+
+                  if [ -n "$shell" ]; then
+                    # Everything in that pty's foreground process group carries "+" in
+                    # its state, so the last such pid is the innermost thing the user is
+                    # looking at (a nested shell, an editor); with an idle prompt it is
+                    # the shell itself. Its cwd is what "same folder" means.
+                    target=$shell
+                    while read -r ttyPid ttyStat; do
+                      case $ttyStat in
+                        *+*) target=$ttyPid ;;
+                      esac
+                    done < <(${ps} -o pid=,stat= -t "$tty")
+
+                    cwd=$(${readlink} -e "/proc/$target/cwd") || cwd=""
+                    [ -n "$cwd" ] && dir=$cwd
+                  fi
+                fi
+              fi
+
+              if [ -n "$dir" ]; then
+                exec ${kitty} --directory "$dir"
+              else
+                exec ${kitty}
+              fi
+            '';
           in
           {
             spawn-at-startup = [ noctalia ];
@@ -76,7 +133,7 @@
             # Equal), and "["/"]" are AltGr (Mod5) on 8/9.
             binds = {
               # apps
-              "Mod+Return".spawn-sh = kitty;
+              "Mod+Return".spawn-sh = "${kittyInCwd}";
               "Mod+S".spawn-sh = "${noctalia} msg panel-toggle launcher";
               "Mod+V".spawn-sh = "${noctalia} msg panel-toggle clipboard";
 
