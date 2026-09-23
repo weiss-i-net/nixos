@@ -47,7 +47,7 @@
                   "AstroNvim/astrolsp",
                   ---@type AstroLSPOpts
                   opts = {
-                    servers = { "hls", "nixd" },
+                    servers = { "hls", "nixd", "tinymist" },
                     config = {},
                   },
                 }
@@ -65,6 +65,10 @@
       packages.myNeovim = inputs.wrapper-modules.wrappers.neovim.wrap {
         inherit pkgs;
         runtimePkgs = with pkgs; [
+          glibc
+          libgcc
+          openssl
+
           ripgrep
           fd
           lazygit
@@ -75,6 +79,7 @@
           python3
 
           nixd
+          tinymist
 
           # AstroNvim sets clipboard=unnamedplus; without a provider binary on
           # PATH that silently does nothing.
