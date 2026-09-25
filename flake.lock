@@ -140,26 +140,6 @@
         "type": "github"
       }
     },
-    "noctalia": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1790197759,
-        "narHash": "sha256-s9I3ErYTQvW8B5AYLnHnTr+Twbd9oZ7IWACdWxD3/j0=",
-        "owner": "noctalia-dev",
-        "repo": "noctalia-shell",
-        "rev": "4c8d30e797d001ff5553d6beb11337606744afe0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "noctalia-dev",
-        "repo": "noctalia-shell",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "astronvim-template": "astronvim-template",
@@ -169,7 +149,6 @@
         "nix-index-database": "nix-index-database",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
-        "noctalia": "noctalia",
         "sops-nix": "sops-nix",
         "treefmt-nix": "treefmt-nix",
         "wrapper-modules": "wrapper-modules",
