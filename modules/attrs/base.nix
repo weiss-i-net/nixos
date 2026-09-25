@@ -17,7 +17,6 @@
       programs.nix-index-database.comma.enable = true;
 
       environment.systemPackages = with pkgs; [
-        git
         fishPlugins.tide
         thunderbird
         inputs'.zen-browser.packages.default

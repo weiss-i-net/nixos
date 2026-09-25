@@ -6,9 +6,6 @@
       lib,
       ...
     }:
-    let
-      fileManager = pkgs.nautilus;
-    in
     {
       imports = with self.nixosModules; [
         niri
@@ -69,7 +66,7 @@
 
       environment.systemPackages = with pkgs; [
         adwaita-icon-theme
-        fileManager
+        nautilus
       ];
 
       home-manager.sharedModules = [
@@ -77,7 +74,7 @@
           dconf.enable = true;
           services.udiskie = {
             enable = true;
-            settings.program_options.file_manager = lib.getExe fileManager;
+            settings.program_options.file_manager = lib.getExe pkgs.nautilus;
           };
           gtk = {
             enable = true;
