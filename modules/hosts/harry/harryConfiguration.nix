@@ -27,10 +27,9 @@
 
       networking.hostName = "harry";
 
-      # This Surface is slow and thermally limited, so builds go to desktop
-      # whenever it's reachable on the LAN (nix falls back to building locally
-      # when it isn't). Addressed by IP rather than name because the LAN has no
-      # local DNS worth trusting -- keep the lease reserved on the router.
+      # Slow and thermally limited, so builds go to desktop when it's reachable
+      # (nix falls back to building locally when it isn't). By IP because the
+      # LAN has no DNS worth trusting -- keep the lease reserved on the router.
       nix = {
         distributedBuilds = true;
         buildMachines = [
@@ -41,8 +40,7 @@
             systems = [ "x86_64-linux" ];
             protocol = "ssh-ng";
             maxJobs = 8;
-            # Anything above 1 makes nix prefer the builder over this host's own
-            # slot, which is the whole point of the offload.
+            # Above 1 makes nix prefer the builder over this host's own slot.
             speedFactor = 4;
             supportedFeatures = [
               "nixos-test"
@@ -52,20 +50,18 @@
             ];
           }
         ];
-        # Let the builder fetch substitutes itself instead of pulling them down
-        # here and pushing them back up over the same link.
+        # Let the builder fetch substitutes rather than routing them via here.
         settings.builders-use-substitutes = true;
       };
 
       sops.secrets."nixremote-ssh-private-key" = { };
 
-      # The daemon connects non-interactively, so an unknown host key has to be a
-      # hard failure rather than a prompt.
+      # The daemon connects non-interactively, so an unknown host key has to fail
+      # rather than prompt.
       programs.ssh.knownHosts."172.16.58.56".publicKey =
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGVZzvjJ7CEXey/SJo2bbkzZsZ9JDxHLJYeTP/DXYaq+";
 
-      # The release this machine was installed at -- it pins the on-disk
-      # state formats NixOS may assume, so it stays as-is across upgrades.
+      # The release this machine was installed at; never bumped.
       system.stateVersion = "26.05";
 
       # Surface's high-DPI internal panel needs upscaling.
@@ -75,6 +71,7 @@
         };
       };
 
+      # The IPU3 camera's lens-focus VCM driver isn't autoloaded.
       boot.kernelModules = [ "dw9719" ];
 
       swapDevices = [
@@ -86,8 +83,7 @@
 
       services.thermald.enable = true;
 
-      # Battery-only concern, so it lives here rather than in the shared
-      # desktop module -- there is nothing to switch profiles on a tower.
+      # Battery-only, so not in the shared desktop module.
       services.power-profiles-daemon.enable = true;
 
       environment.systemPackages = with pkgs; [

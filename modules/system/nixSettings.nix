@@ -7,9 +7,8 @@ _: {
         "flakes"
       ];
       settings.auto-optimise-store = true;
-      # This flake lives in a colocated jj repo, where the working copy is
-      # always a real commit -- every nix command would otherwise prefix its
-      # output with a "Git tree is dirty" warning that means nothing here.
+      # The jj working copy is always a real commit, so the dirty-tree warning
+      # every nix command would print means nothing here.
       settings.warn-dirty = false;
       gc = {
         automatic = true;

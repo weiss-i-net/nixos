@@ -24,10 +24,9 @@ _: {
         extraModulePackages = [ ];
       };
 
-      # zstd:1 is the cheap end of btrfs compression (near-free on this CPU,
-      # still a large win on /nix); noatime drops a write per read. Both only
-      # affect data written from here on -- `btrfs filesystem defragment -r
-      # -czstd <mountpoint>` rewrites what's already on disk.
+      # zstd:1 is near-free on this CPU and still a large win on /nix; noatime
+      # drops a write per read. Both only affect data written from here on --
+      # `btrfs filesystem defragment -r -czstd <mp>` rewrites what is on disk.
       fileSystems = {
         "/" = {
           device = "/dev/disk/by-uuid/a02caabd-5ec7-49a1-9326-2305074db93d";
@@ -67,8 +66,8 @@ _: {
           ];
         };
 
-        # Windows partition (dual-boot). nofail so a NixOS boot never hangs on
-        # it; uid/gid so jannik can read/write without sudo.
+        # Windows partition (dual-boot). nofail so a boot never hangs on it,
+        # uid/gid for sudo-less access.
         "/mnt/c" = {
           device = "/dev/disk/by-uuid/785A0D7B5A0D3800";
           fsType = "ntfs3";
@@ -82,9 +81,8 @@ _: {
 
       swapDevices = [ ];
 
-      # Scrubbing "/" covers the whole device, subvolumes included -- btrfs
-      # only detects bit rot when it reads a block, so without this a stale
-      # corruption in cold data goes unnoticed until something needs it.
+      # btrfs only notices bit rot when it reads a block, so cold data needs a
+      # scrub to be checked at all. "/" covers the whole device.
       services.btrfs.autoScrub = {
         enable = true;
         interval = "monthly";

@@ -38,9 +38,8 @@
 
             xwayland-satellite.path = lib.getExe pkgs.xwayland-satellite;
 
-            # Matches environment.sessionVariables.XCURSOR_THEME/SIZE in
-            # system/desktop.nix -- without an explicit theme, niri falls back to
-            # an oversized built-in placeholder cursor.
+            # Matches XCURSOR_* in system/desktop.nix; without an explicit theme
+            # niri falls back to an oversized placeholder.
             cursor = {
               xcursor-theme = "Adwaita";
               xcursor-size = 24;
@@ -70,6 +69,11 @@
               }
             ];
 
+            # A bind matches the physical key's *unshifted* keysym plus the
+            # modifiers literally held -- it does not resolve to the shifted
+            # character. On the German layout that makes the punctuation binds
+            # below look wrong: "/" is Shift+7, "+" has its own key (so never
+            # Equal), and "["/"]" are AltGr (Mod5) on 8/9.
             binds = {
               # apps
               "Mod+Return".spawn-sh = kitty;
@@ -77,10 +81,6 @@
               "Mod+V".spawn-sh = "${noctalia} msg panel-toggle clipboard";
 
               # help / overview
-              # niri binds always match a physical key's *unshifted* keysym plus whatever
-              # modifiers are literally held (it does not resolve to the shifted character).
-              # "/" only exists as Shift+7 on the German layout (there's no key whose unshifted
-              # symbol is "/"), so the bind must name the base key ("7"), not "Slash".
               "Mod+Shift+7".show-hotkey-overlay = [ ];
               "Mod+O".toggle-overview = [ ];
 
@@ -96,23 +96,17 @@
               "Mod+Shift+R".switch-preset-column-width-back = [ ];
               "Mod+Ctrl+R".reset-window-height = [ ];
               "Mod+Ctrl+Shift+R".switch-preset-window-height = [ ];
-              "Mod+Minus".set-column-width = "-10%"; # unshifted "-" key, same on German and US layouts
-              # "=" doesn't exist as an unshifted symbol anywhere on the German layout (it's
-              # Shift+0, and Equal's *base* symbol there is "0", not "="), so "Mod+Equal" would
-              # never match. Its own dedicated "+"/"*" key is unshifted "+" on German, so bind
-              # to that instead -- same key for both width (no Shift) and height (Shift) below.
+              "Mod+Minus".set-column-width = "-10%";
               "Mod+Plus".set-column-width = "+10%";
               "Mod+Shift+Minus".set-window-height = "-10%";
               "Mod+Shift+Plus".set-window-height = "+10%";
               "Mod+Shift+Space".toggle-window-floating = [ ];
               "Mod+Shift+V".switch-focus-between-floating-and-tiling = [ ];
               "Mod+W".toggle-column-tabbed-display = [ ];
-              # Same base-keysym rule as above: "[" is AltGr+8 on German, i.e. base key "8" with
-              # the ISO_Level3_Shift (AltGr) modifier held -- "Mod+BracketLeft" would never fire.
               "Mod+Mod5+8".consume-or-expel-window-left = [ ];
               "Mod+Mod5+9".consume-or-expel-window-right = [ ];
-              "Mod+Comma".consume-window-into-column = [ ]; # "," is unshifted on German layout too, same key as US
-              "Mod+Period".expel-window-from-column = [ ]; # same for "."
+              "Mod+Comma".consume-window-into-column = [ ];
+              "Mod+Period".expel-window-from-column = [ ];
 
               # focus / move (vim-style, mirrored on arrow keys)
               "Mod+H".focus-column-left = [ ];
@@ -136,8 +130,7 @@
               "Mod+Ctrl+Home".move-column-to-first = [ ];
               "Mod+Ctrl+End".move-column-to-last = [ ];
 
-              # monitor focus / move (Ctrl tier, since Shift above already moves columns/windows;
-              # only useful once a second output is configured, but harmless to have ready)
+              # monitor focus / move -- Ctrl tier, since Shift already moves columns
               "Mod+Ctrl+H".focus-monitor-left = [ ];
               "Mod+Ctrl+L".focus-monitor-right = [ ];
               "Mod+Ctrl+J".focus-monitor-down = [ ];

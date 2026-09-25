@@ -8,8 +8,7 @@
       ...
     }:
     let
-      # claude-code is unfree; only allow it for this local pkgs instance rather
-      # than flipping allowUnfree on for every perSystem package.
+      # claude-code is unfree; keep that scoped to this shell.
       pkgsUnfree = import inputs.nixpkgs {
         inherit system;
         config.allowUnfree = true;

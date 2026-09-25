@@ -47,7 +47,6 @@
         '';
 
         configAfter = ''
-          # split panes using | and -
           bind < split-window -h -c "#{pane_current_path}"
           bind - split-window -v -c "#{pane_current_path}"
           bind , copy-mode
@@ -57,8 +56,8 @@
           unbind '"'
           unbind %
 
-          # Smart pane switching with awareness of Vim splits.
-          # See: https://github.com/christoomey/vim-tmux-navigator
+          # Pass C-hjkl through to vim instead of switching panes when vim has
+          # focus: https://github.com/christoomey/vim-tmux-navigator
           is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
               | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(di)?$'"
           bind-key -n 'C-h' if-shell "$is_vim" 'send-keys C-h'  'select-pane -L'
@@ -73,26 +72,18 @@
           bind-key -T copy-mode-vi 'C-l' select-pane -R
           bind-key -T copy-mode-vi 'C-\' select-pane -l
 
-          # Use shift + arrow key to move between windows in a session
           bind -n S-Left  previous-window
           bind -n S-Right next-window
 
-          # Prefix + / to search
           bind-key / copy-mode \; send-key ?
 
-          # Setup 'v' to begin selection, just like Vim
-          # ('y' to copy is handled by the tmux-yank plugin, which picks
-          # wl-copy/xclip/pbcopy automatically depending on the platform)
+          # "y" to copy comes from the tmux-yank plugin, which picks
+          # wl-copy/xclip/pbcopy for the platform itself.
           bind-key -T copy-mode-vi 'v' send -X begin-selection
           bind-key -T copy-mode-vi 'V' send -X select-line
           bind-key -T copy-mode-vi 'r' send -X rectangle-toggle
 
-          # config is managed by Nix; edit modules/features/tmux.nix and rebuild instead
           bind r display-message "tmux config is managed by Nix -- edit modules/features/tmux.nix"
-
-          ######################
-          ### DESIGN CHANGES ###
-          ######################
 
           # modes
           setw -g clock-mode-colour colour5

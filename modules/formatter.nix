@@ -2,10 +2,8 @@
 {
   imports = [ inputs.treefmt-nix.flakeModule ];
 
-  # treefmt-nix sets `formatter` itself and, via flakeCheck, adds a
-  # `checks.treefmt` that fails on anything `nix fmt` would have changed --
-  # so the deadnix/statix lints that used to be fixed by hand are now both
-  # auto-applied and gated.
+  # treefmt-nix also adds a checks.treefmt that fails on anything `nix fmt`
+  # would have changed, so the lints are gated as well as auto-applied.
   perSystem.treefmt = {
     projectRootFile = "flake.nix";
     programs = {
@@ -14,10 +12,8 @@
       statix.enable = true;
     };
 
-    # Run the linters before the formatter (lower priority goes first): their
-    # rewrites are not themselves nixfmt-shaped, so with the default ordering
-    # a file statix touched could come out unformatted and fail checks.treefmt
-    # on the next run.
+    # Linters first (lower priority runs first): their rewrites aren't
+    # nixfmt-shaped, so nixfmt has to clean up after them.
     settings.formatter = {
       deadnix.priority = 1;
       statix.priority = 2;

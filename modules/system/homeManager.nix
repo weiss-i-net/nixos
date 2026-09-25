@@ -6,8 +6,7 @@
       useGlobalPkgs = true;
       useUserPackages = true;
       backupFileExtension = "backup";
-      # Replace a stale .backup rather than aborting activation when one already
-      # exists, which is what a second collision on the same file would do.
+      # Replace a stale .backup instead of aborting activation on a second collision.
       overwriteBackup = true;
     };
   };

@@ -3,6 +3,10 @@
   moduleWithSystem,
   ...
 }:
+# The wrapper generates no config here -- it only puts AstroNvim's external
+# binaries on nvim's PATH (appended, so a project's devshell still wins). The
+# config is the upstream template linked below, extended by adding spec files
+# into the recursively-linked tree.
 {
   flake.nixosModules.neovim = moduleWithSystem (
     { self', ... }:
@@ -16,8 +20,7 @@
               source = inputs.astronvim-template;
               recursive = true;
             };
-            # The syncthing folder is mirrored to other devices, so an edit is
-            # only useful once it hits disk — don't make that wait for a :w.
+            # Mirrored to other devices, so an edit is only useful once it hits disk.
             "nvim/lua/plugins/autosaveSyncthing.lua" = {
               text = ''
                 return {

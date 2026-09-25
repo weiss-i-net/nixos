@@ -25,10 +25,9 @@ _: {
         extraModulePackages = [ ];
       };
 
-      # zstd:1 is the cheap end of btrfs compression (near-free on this CPU,
-      # still a large win on /nix); noatime drops a write per read. Both only
-      # affect data written from here on -- `btrfs filesystem defragment -r
-      # -czstd <mountpoint>` rewrites what's already on disk.
+      # zstd:1 is near-free on this CPU and still a large win on /nix; noatime
+      # drops a write per read. Both only affect data written from here on --
+      # `btrfs filesystem defragment -r -czstd <mp>` rewrites what is on disk.
       fileSystems = {
         "/" = {
           device = "/dev/disk/by-uuid/bab85867-fd1b-4cf0-85ad-30e6ac523632";
@@ -68,10 +67,9 @@ _: {
           ];
         };
 
-        # Windows partition (dual-boot). nofail so a NixOS boot never hangs on
-        # it; uid/gid so jannik can read/write without sudo. force because
-        # Windows Fast Startup/hibernation leaves the volume's dirty bit set
-        # on every shutdown, which ntfs3 otherwise refuses to mount over.
+        # Windows partition (dual-boot). nofail so a boot never hangs on it,
+        # uid/gid for sudo-less access, force because Fast Startup leaves the
+        # dirty bit set on every shutdown and ntfs3 refuses to mount over that.
         "/mnt/c" = {
           device = "/dev/disk/by-uuid/7AC64FF5C64FB065";
           fsType = "ntfs3";
@@ -83,10 +81,8 @@ _: {
           ];
         };
 
-        # 5.5TB internal HDD holding the Plex media library. Same options as
-        # /mnt/c above and for the same reasons -- it is the second NTFS volume
-        # Windows shares, so it picks up the same dirty bit on every Fast
-        # Startup shutdown.
+        # 5.5TB HDD with the Plex library; the other NTFS volume Windows shares,
+        # so same options for the same reasons as /mnt/c.
         "/mnt/plex" = {
           device = "/dev/disk/by-uuid/4CACC5F1ACC5D59C";
           fsType = "ntfs3";
@@ -98,14 +94,12 @@ _: {
           ];
         };
 
-        # Offsite copies of echo's backup stores, pulled by backupMirror. The
-        # parent subvolume is what gets mounted rather than the individual
-        # mirrors, so the read-only snapshots under snapshots/ live on the same
-        # filesystem while staying outside every rsync --delete target.
-        # The subvolumes have to exist before this can mount. "/" here is
-        # subvolid=5 -- the btrfs top level, not a subvolume of its own -- so
-        # they are created directly as /backup, /backup/urbackup and
-        # /backup/restic, with no temporary top-level mount needed.
+        # Offsite copies of echo's backup stores (see the mirror timers in
+        # desktopConfiguration.nix). The parent is mounted rather than the
+        # individual mirrors, so the read-only snapshots under snapshots/ sit on
+        # the same filesystem but outside every rsync --delete target. The
+        # subvolumes must exist first; "/" here is subvolid=5, the btrfs top
+        # level, so they are created directly as /backup and /backup/<name>.
         "/mnt/backup" = {
           device = "/dev/disk/by-uuid/bab85867-fd1b-4cf0-85ad-30e6ac523632";
           fsType = "btrfs";
@@ -120,9 +114,8 @@ _: {
 
       swapDevices = [ ];
 
-      # Scrubbing "/" covers the whole device, subvolumes included -- btrfs
-      # only detects bit rot when it reads a block, so without this a stale
-      # corruption in cold data goes unnoticed until something needs it.
+      # btrfs only notices bit rot when it reads a block, so cold data needs a
+      # scrub to be checked at all. "/" covers the whole device.
       services.btrfs.autoScrub = {
         enable = true;
         interval = "monthly";
@@ -131,10 +124,8 @@ _: {
 
       nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
       hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-      # Steam's own runtime and many Proton prefixes are still 32-bit, so the
-      # 32-bit GL/Vulkan userspace has to be installed alongside the 64-bit one.
-      # programs.steam sets both too, but they stay here: graphics is a property
-      # of the machine, not of the gaming bundle.
+      # Steam's runtime and many Proton prefixes are 32-bit. programs.steam sets
+      # these too, but graphics is a property of the machine, not of a bundle.
       hardware.graphics = {
         enable = true;
         enable32Bit = true;

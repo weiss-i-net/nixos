@@ -2,6 +2,10 @@
   moduleWithSystem,
   ...
 }:
+# No wrapper-modules wrap here: its noctalia-shell wrapper targets v4 and
+# generates files v5 doesn't read. Upstream's home-manager module owns
+# config.toml, and noctalia's own UI writes a second layer over it in
+# ~/.local/state that nix can't see.
 {
   flake.nixosModules.noctalia = moduleWithSystem (_: {
     home-manager.sharedModules = [

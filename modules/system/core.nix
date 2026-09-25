@@ -11,10 +11,9 @@
         loader = {
           systemd-boot = {
             enable = true;
-            # Every generation keeps its kernel+initrd on the (small, vfat) ESP
-            # until nix.gc drops the profile 30 days later, so leaving this
-            # unbounded lets a busy rebuild week fill /boot and fail a switch
-            # halfway through.
+            # Each generation pins a kernel+initrd on the small ESP until gc
+            # drops it 30 days later; unbounded, a busy week fills /boot and
+            # fails a switch halfway through.
             configurationLimit = 10;
           };
           efi.canTouchEfiVariables = true;

@@ -12,11 +12,8 @@
         secrets
       ];
 
-      # The password lives in sops (hashedPasswordFile below), so let the
-      # config be authoritative: an out-of-band `passwd` would otherwise
-      # persist and drift the machine away from what's declared here.
-      # Note this leaves root without a password -- recovery is via the boot
-      # menu (init=/bin/sh) or an installer ISO.
+      # The password comes from sops, so let the config win over an out-of-band
+      # `passwd`. Leaves root passwordless: recover via boot menu or an ISO.
       users.mutableUsers = false;
 
       users.users."jannik" = {
@@ -30,8 +27,7 @@
           "wheel"
           "video"
         ]
-        # The group only exists when attrs/gaming is imported; listing it
-        # unconditionally breaks activation on a host without that bundle.
+        # The group only exists when the gaming bundle is imported.
         ++ lib.optional config.programs.gamemode.enable "gamemode";
       };
 
@@ -53,8 +49,7 @@
         };
       };
 
-      # id_ed25519 is deployed by sops-nix above; the directory needs to exist
-      # with the right ownership/mode first since ssh checks it too.
+      # ssh checks the directory's mode too, so it must exist before the key lands.
       systemd.tmpfiles.rules = [
         "d /home/jannik/.ssh 0700 jannik users -"
       ];

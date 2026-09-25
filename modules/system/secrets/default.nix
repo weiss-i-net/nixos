@@ -5,9 +5,7 @@
     {
       imports = [ inputs.sops-nix.nixosModules.sops ];
 
-      # Only the sops-nix wiring lives here -- which secrets a host wants
-      # decrypted is the concern of whatever declares them (user.nix for
-      # jannik's, the host configuration for per-machine ones).
+      # Wiring only; which secrets get decrypted is declared by whoever needs them.
       sops = {
         defaultSopsFile = ./secrets.yaml;
         age.keyFile = "/var/lib/sops-nix/key.txt";

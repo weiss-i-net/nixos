@@ -9,10 +9,9 @@
     {
       environment.systemPackages = [ self'.packages.myGopro ];
 
-      # v4l2loopback backs a persistent /dev/video42 "GoPro Webcam" device
-      # that the `gopro` script feeds via ffmpeg, so apps (Discord, browsers)
-      # just see it as an ordinary webcam. exclusive_caps=1 is required for
-      # Chrome/Discord to recognize it as a capture-only source.
+      # A persistent /dev/video42 the `gopro` script feeds via ffmpeg, so apps
+      # see an ordinary webcam. exclusive_caps=1 is what makes Chrome/Discord
+      # recognize it as a capture-only source.
       boot = {
         extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
         kernelModules = [ "v4l2loopback" ];
@@ -21,22 +20,17 @@
         '';
       };
 
-      # The camera's USB network gadget otherwise gets a predictable-interface
-      # name that varies with the port it's plugged into, leaving nothing
-      # stable for the firewall rule below to name. Match it by the same USB
-      # vendor id gopro.fish uses for discovery (2672 == GoPro) and pin it.
-      # .link files are applied by udev, so this needs no networkd.
+      # The gadget's interface name otherwise varies with the USB port, leaving
+      # nothing stable for the firewall rule below to name. 2672 == GoPro, the
+      # same vendor id gopro.fish discovers by. Applied by udev, not networkd.
       systemd.network.links."10-gopro" = {
         matchConfig.Property = "ID_VENDOR_ID=2672";
         linkConfig.Name = "gopro0";
       };
 
-      # The camera pushes its MPEG-TS video stream to the host on this UDP
-      # port unprompted -- with no prior outbound packet on that flow, the
-      # default stateful firewall silently drops it as an unsolicited
-      # inbound connection, leaving ffmpeg's UDP listener waiting forever.
-      # Scoped to the camera's own link so the port isn't also exposed on
-      # whatever wifi a laptop happens to be on.
+      # The camera pushes its stream unprompted, so the stateful firewall drops
+      # it as unsolicited and ffmpeg's listener waits forever. Scoped to the
+      # camera's own link so the port isn't exposed on whatever wifi we're on.
       networking.firewall.interfaces."gopro0".allowedUDPPorts = [ 8554 ];
     }
   );

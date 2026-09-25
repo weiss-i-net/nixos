@@ -35,8 +35,7 @@
         udisks2.enable = true;
       };
 
-      # Reuse the X11 xkb layout above for the TTYs instead of the default
-      # us keymap.
+      # Reuse the layout above for the TTYs instead of the us default.
       console.useXkbConfig = true;
 
       hardware.bluetooth.enable = true;
@@ -50,15 +49,12 @@
         noto-fonts-color-emoji
       ];
 
-      # sessionVariables, not variables: greetd launches niri-session directly
-      # rather than through a login shell, so /etc/set-environment is never
-      # sourced and anything set there misses the graphical session entirely.
+      # sessionVariables, not variables: greetd launches niri-session without a
+      # login shell, so /etc/set-environment is never sourced.
       environment.sessionVariables = {
         XCURSOR_THEME = "Adwaita";
         XCURSOR_SIZE = "24";
-        # gamescope spawns its own private Xwayland per-instance rather than using
-        # niri's, so it doesn't pick up niri's keyboard.xkb config above and falls
-        # back to Xwayland's built-in "us" default.
+        # gamescope's own Xwayland doesn't pick up niri's xkb config.
         XKB_DEFAULT_LAYOUT = "de";
         XKB_DEFAULT_OPTIONS = "lv3:caps_switch";
         QT_QPA_PLATFORMTHEME = "gtk3";
