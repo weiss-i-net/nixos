@@ -9,8 +9,95 @@
     {
       lib,
       config,
+      pkgs,
       ...
     }:
+
+    let
+      # Pull-mirror one of echo's backup trees into /mnt/backup/<name> and keep
+      # the last 14 read-only btrfs snapshots of it. Pulling rather than
+      # accepting a push is what lets this host expose nothing; the previous
+      # restic REST server ran --no-auth, so anything on the LAN could write to
+      # the repo.
+      mirror =
+        {
+          name,
+          remotePath,
+          onCalendar,
+          extraFlags ? [ ],
+        }:
+        {
+          services."backup-mirror-${name}" = {
+            description = "Pull-mirror echo:${remotePath}";
+
+            # /mnt/backup is a nofail mount, so without this a failed mount
+            # leaves rsync writing hundreds of GiB into the root subvolume.
+            unitConfig.RequiresMountsFor = "/mnt/backup";
+
+            after = [
+              "network-online.target"
+              "wg-quick-fritzbox.service"
+            ];
+            wants = [ "network-online.target" ];
+
+            path = [
+              pkgs.rsync
+              pkgs.openssh
+              pkgs.btrfs-progs
+            ];
+
+            serviceConfig = {
+              Type = "oneshot";
+              # Seeding runs for hours, and every later run still traverses the
+              # whole source before a byte moves.
+              TimeoutStartSec = "24h";
+              IOSchedulingClass = "idle";
+              Nice = 10;
+            };
+
+            script = ''
+              set -euo pipefail
+
+              mirror=/mnt/backup/${name}
+              snapdir=/mnt/backup/snapshots/${name}
+              mkdir -p "$snapdir"
+
+              # No --max-delete: both sources delete legitimately and in bulk, so
+              # any threshold either false-trips or is too loose to catch
+              # anything. The real guards are that a missing source path makes
+              # rsync exit non-zero without deleting, plus the snapshot below.
+              # --partial-dir because individual files here reach 64 GiB and an
+              # interrupted run must resume rather than restart one from zero.
+              rsync \
+                --archive --numeric-ids --delete --delete-delay \
+                --timeout=600 --stats --human-readable \
+                --partial-dir=.rsync-partial --exclude=.rsync-partial \
+                ${lib.concatStringsSep " " extraFlags} \
+                -e 'ssh -i ${config.sops.secrets."backup-mirror-ssh-private-key".path} -o BatchMode=yes' \
+                jannik@192.168.178.36:${remotePath}/ "$mirror/"
+
+              # set -e means this is only reached on a clean transfer, so every
+              # snapshot is a coherent point in time.
+              btrfs subvolume snapshot -r "$mirror" "$snapdir/$(date -u +%Y-%m-%dT%H%M%SZ)"
+
+              mapfile -t stale < <(find "$snapdir" -mindepth 1 -maxdepth 1 -type d | sort | head -n -14)
+              if [ ''${#stale[@]} -gt 0 ]; then
+                btrfs subvolume delete "''${stale[@]}"
+              fi
+            '';
+          };
+
+          timers."backup-mirror-${name}" = {
+            wantedBy = [ "timers.target" ];
+            timerConfig = {
+              OnCalendar = onCalendar;
+              # Not always on; a missed window should run at the next boot.
+              Persistent = true;
+              RandomizedDelaySec = "15m";
+            };
+          };
+        };
+    in
 
     {
       imports = with self.nixosModules; [
@@ -21,7 +108,6 @@
         devel
         wslMount
         remoteBuild
-        backupMirror
       ];
 
       networking.hostName = "desktop";
@@ -118,75 +204,49 @@
         ];
       };
 
-      # This machine is echo's offsite copy. Both of echo's backup stores live
-      # on the same NFS export there, so one restricted key rooted at
-      # /mnt/dlink_nas covers both -- rrsync only confines to a single
-      # directory, and the alternative is maintaining two keypairs to protect
-      # data this host already holds a full copy of.
-      #
-      # Pulling rather than accepting a push is what lets this host expose
-      # nothing: the previous restic REST server ran --no-auth on port 8000, so
-      # anything on the home LAN could write into the repo.
-      backupMirror = {
-        enable = true;
-        path = "/mnt/backup";
+      sops.secrets."backup-mirror-ssh-private-key" = { };
 
-        remote = {
-          host = "192.168.178.36";
-          user = "jannik";
-          hostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGKTNdFDUmkqJYB/P0rgDQHZaf2gv+i7xbuDYR4L8clb";
-          # echo sits on the home LAN; this host only reaches it through the
-          # tunnel, so a pull started before wg is up cannot resolve or connect.
-          interface = "fritzbox";
-        };
+      # echo is only reachable through the tunnel, so an unknown host key has to
+      # be a hard failure rather than a prompt no timer can answer.
+      programs.ssh.knownHosts."192.168.178.36".publicKey =
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGKTNdFDUmkqJYB/P0rgDQHZaf2gv+i7xbuDYR4L8clb";
 
-        mirrors = {
-          # A restic repo is a directory of immutable, atomically-renamed pack
-          # files, so a plain rsync gives a byte-identical replica -- no
-          # re-packing, no index rebuild, and no repo password needed here.
-          # rsync walks alphabetically, so data/ lands before index/ and
-          # snapshots/: a run overlapping a backup on echo still yields a valid
-          # repo, just missing the newest snapshot until the next run.
-          restic = {
-            remotePath = "echo_restic_repo";
-            # restic encrypts every blob and this is a v2 repo, so the packs
-            # are zstd-compressed before that too -- the bytes on the wire are
-            # incompressible. --skip-compress cannot exclude them either,
-            # since it keys off file extensions and pack files are named after
-            # their own hash with none.
-            compress = false;
-            # echo's own cron fires at 04:00 and ends with restic forget
-            # --prune, which deletes packs and rewrites indexes. Pulling
-            # through that window risks copying a rewritten index alongside
-            # packs it no longer matches, so this waits well clear of it
-            # rather than racing a job whose duration scales with churn.
-            onCalendar = "*-*-* 05:30:00";
-          };
+      systemd = lib.mkMerge [
+        # A restic repo is a directory of immutable, atomically-renamed pack
+        # files, so a plain rsync gives a byte-identical replica with no
+        # re-packing and no repo password. Not compressed: the packs are
+        # encrypted and already zstd'd, and --skip-compress can't exclude them
+        # since it keys off extensions and packs are named after their hash.
+        # Timed well clear of echo's 04:00 restic forget --prune, which rewrites
+        # indexes the packs must still match.
+        (mirror {
+          name = "restic";
+          remotePath = "echo_restic_repo";
+          onCalendar = "*-*-* 05:30:00";
+        })
 
-          # UrBackup already deduplicates via hardlinks and .directory_pool, so
-          # -H is the whole point: without it this mirror inflates from 163GiB
-          # to 206GiB and loses the structure UrBackup restores from. The tree
-          # includes UrBackup's own nightly copy of backup_server*.db (written
-          # ~03:10), which is what makes the mirror a directly usable storage
-          # folder rather than something that has to be unpacked first.
-          # urbackup_tmp_files is live scratch and never worth transferring.
-          #
-          # Staggered after the restic pull so the two do not split the
-          # tunnel between them, and well before UrBackup's own backups start
-          # around midday -- there is no genuinely quiet window, but this is
-          # the calmest one.
-          urbackup = {
-            remotePath = "urbackup";
-            hardLinks = true;
-            excludes = [ "/urbackup_tmp_files/" ];
-            onCalendar = "*-*-* 07:00:00";
-          };
-        };
-      };
+        # UrBackup dedupes via hardlinks and .directory_pool, so --hard-links is
+        # the whole point: without it this inflates from 163GiB to 206GiB and
+        # loses the structure UrBackup restores from. urbackup_tmp_files is live
+        # scratch. Staggered after the restic pull so the two don't split the
+        # tunnel, and before UrBackup's own midday runs.
+        (mirror {
+          name = "urbackup";
+          remotePath = "urbackup";
+          onCalendar = "*-*-* 07:00:00";
+          extraFlags = [
+            "--hard-links"
+            "--exclude=/urbackup_tmp_files/"
+            "--compress"
+            "--compress-choice=zstd"
+            "--compress-level=3"
+            "--skip-compress=vhdxz/vhdz/vhdx/hash/cbitmap/zst/gz/xz/zip/7z/jpg/png/mp4/mkv"
+          ];
+        })
+      ];
 
-      # Not used by the mirror itself, which copies the repo without opening it.
-      # This is here so `restic check` can be run against /mnt/backup/restic to
-      # prove the offsite copy is actually restorable.
+      # Unused by the mirror, which copies the repo without opening it. Here so
+      # `restic check` can prove the offsite copy is actually restorable.
       sops.secrets."echo-restic-password" = { };
     }
   );
