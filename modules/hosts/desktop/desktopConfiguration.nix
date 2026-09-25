@@ -107,14 +107,36 @@
         gaming
         devel
         wslMount
-        remoteBuild
       ];
 
       networking.hostName = "desktop";
 
       # 16 threads and always on mains power, so this is the machine harry
-      # offloads its builds to -- see remoteBuild.client on harry.
-      remoteBuild.server.enable = true;
+      # offloads its builds to -- see the buildMachines entry on harry.
+      services.openssh = {
+        enable = true;
+        settings = {
+          PasswordAuthentication = false;
+          PermitRootLogin = "no";
+          AllowUsers = [ "nixremote" ];
+        };
+      };
+
+      users.groups.nixremote = { };
+      users.users.nixremote = {
+        isSystemUser = true;
+        group = "nixremote";
+        # nix runs `nix-daemon --stdio` through this account's login shell, so a
+        # nologin shell leaves ssh working while every offloaded build fails.
+        shell = pkgs.bashInteractive;
+        openssh.authorizedKeys.keys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH3XazhBVJSxyiDfER3FjpFFt+fIYXOxz1fuF0cm0Hr8 nixremote"
+        ];
+      };
+
+      # The closures a client uploads are unsigned; without this the daemon
+      # refuses them and every offloaded build dies on a missing signature.
+      nix.settings.trusted-users = [ "nixremote" ];
 
       # The release this machine was installed at -- it pins the on-disk
       # state formats NixOS may assume, so it stays as-is across upgrades.

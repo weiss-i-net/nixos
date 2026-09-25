@@ -23,7 +23,6 @@
         gaming
         devel
         wslMount
-        remoteBuild
       ];
 
       networking.hostName = "harry";
@@ -32,11 +31,38 @@
       # whenever it's reachable on the LAN (nix falls back to building locally
       # when it isn't). Addressed by IP rather than name because the LAN has no
       # local DNS worth trusting -- keep the lease reserved on the router.
-      remoteBuild.client = {
-        enable = true;
-        hostName = "172.16.58.56";
-        hostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGVZzvjJ7CEXey/SJo2bbkzZsZ9JDxHLJYeTP/DXYaq+";
+      nix = {
+        distributedBuilds = true;
+        buildMachines = [
+          {
+            hostName = "172.16.58.56";
+            sshUser = "nixremote";
+            sshKey = config.sops.secrets."nixremote-ssh-private-key".path;
+            systems = [ "x86_64-linux" ];
+            protocol = "ssh-ng";
+            maxJobs = 8;
+            # Anything above 1 makes nix prefer the builder over this host's own
+            # slot, which is the whole point of the offload.
+            speedFactor = 4;
+            supportedFeatures = [
+              "nixos-test"
+              "benchmark"
+              "big-parallel"
+              "kvm"
+            ];
+          }
+        ];
+        # Let the builder fetch substitutes itself instead of pulling them down
+        # here and pushing them back up over the same link.
+        settings.builders-use-substitutes = true;
       };
+
+      sops.secrets."nixremote-ssh-private-key" = { };
+
+      # The daemon connects non-interactively, so an unknown host key has to be a
+      # hard failure rather than a prompt.
+      programs.ssh.knownHosts."172.16.58.56".publicKey =
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGVZzvjJ7CEXey/SJo2bbkzZsZ9JDxHLJYeTP/DXYaq+";
 
       # The release this machine was installed at -- it pins the on-disk
       # state formats NixOS may assume, so it stays as-is across upgrades.
