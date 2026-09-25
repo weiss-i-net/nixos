@@ -123,6 +123,19 @@
           }
         ];
       };
+
+      # wg-quick resolves the endpoint hostname once, when the unit starts, and
+      # NetworkManager reaches network-online.target before /etc/resolv.conf has
+      # a usable nameserver -- so at boot this fails instantly with "Name or
+      # service not known" and, being a oneshot, stays down. Retry until DNS
+      # answers; no start limit, so it is never permanently down.
+      systemd.services.wg-quick-fritzbox = {
+        unitConfig.StartLimitIntervalSec = 0;
+        serviceConfig = {
+          Restart = "on-failure";
+          RestartSec = 10;
+        };
+      };
     }
   );
 }
