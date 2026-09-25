@@ -95,10 +95,7 @@
         v4l-utils
       ];
 
-      wslMount = {
-        enable = true;
-        vhdxPath = "/mnt/c/Users/janni/AppData/Local/Packages/46932SUSE.openSUSETumbleweed_022rs5jcyhyac/LocalState/ext4.vhdx";
-      };
+      wslMount.vhdxPath = "/mnt/c/Users/janni/AppData/Local/Packages/46932SUSE.openSUSETumbleweed_022rs5jcyhyac/LocalState/ext4.vhdx";
 
       sops.secrets."harry-wireguard-private-key" = { };
       sops.secrets."harry-wireguard-psk" = { };

@@ -1,4 +1,5 @@
 _: {
+  # Opt-in: importing this requires setting wslMount.vhdxPath.
   flake.nixosModules.wslMount =
     {
       config,
@@ -6,19 +7,13 @@ _: {
       pkgs,
       ...
     }:
-    let
-      cfg = config.wslMount;
-    in
     {
-      options.wslMount = {
-        enable = lib.mkEnableOption "mounting a WSL distro's ext4.vhdx at /mnt/wsl via qemu-nbd";
-        vhdxPath = lib.mkOption {
-          type = lib.types.str;
-          description = "Path to the WSL distro's ext4.vhdx (under the mounted Windows partition).";
-        };
+      options.wslMount.vhdxPath = lib.mkOption {
+        type = lib.types.str;
+        description = "Path to the WSL distro's ext4.vhdx, under the mounted Windows partition.";
       };
 
-      config = lib.mkIf cfg.enable {
+      config = {
         boot.kernelModules = [ "nbd" ];
 
         systemd.services.mnt-wsl-connect = {
@@ -27,7 +22,7 @@ _: {
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;
-            ExecStart = "${pkgs.qemu-utils}/bin/qemu-nbd -c /dev/nbd0 ${cfg.vhdxPath}";
+            ExecStart = "${pkgs.qemu-utils}/bin/qemu-nbd -c /dev/nbd0 ${config.wslMount.vhdxPath}";
             ExecStop = "${pkgs.qemu-utils}/bin/qemu-nbd -d /dev/nbd0";
           };
         };
