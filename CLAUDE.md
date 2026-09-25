@@ -53,6 +53,10 @@ Commit messages here are `scope: lowercase summary`.
 - `sops modules/system/secrets/secrets.yaml` — edit the encrypted secrets.
   `nix develop` provides `sops` and `age`.
 
+A tool that isn't on PATH is expected here; run it from nixpkgs with `,` rather
+than installing it (see the user-level CLAUDE.md). `modules/devshell.nix` is
+where tooling needed *repeatedly* for working on this repo belongs.
+
 ## Architecture
 
 ### Dendritic pattern via import-tree + flake-parts
