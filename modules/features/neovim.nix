@@ -76,6 +76,10 @@
 
           nixd
 
+          # AstroNvim sets clipboard=unnamedplus; without a provider binary on
+          # PATH that silently does nothing.
+          wl-clipboard
+
           ghc
           cabal-install
           stack
