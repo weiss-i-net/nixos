@@ -167,12 +167,31 @@
         };
       };
 
-      # amdgpu's auto fan/power curve runs hotter and louder under load than
-      # AMD's Windows driver; LACT sets a custom one that persists. AMD-only,
-      # so it can't live in the gaming bundle.
       services.lact.enable = true;
 
-      # Without this LACT does fan/power limits only, no clock/voltage curve.
+      environment.etc."lact/config.yaml".text = ''
+        version: 7
+        daemon:
+          log_level: info
+          admin_group: wheel
+        gpus:
+          1002:73DF-1002:0E36-0000:09:00.0:
+            fan_control_enabled: true
+            fan_control_settings:
+              mode: curve
+              temperature_key: edge
+              interval_ms: 1000
+              spindown_delay_ms: 8000
+              change_threshold: 3
+              curve:
+                55: 0.0
+                68: 0.15
+                76: 0.33
+                82: 0.55
+                86: 0.72
+                92: 0.75
+            voltage_offset: -100
+      '';
       hardware.amdgpu.overdrive.enable = true;
 
       wslMount.vhdxPath = "/mnt/c/Users/Jannik/AppData/Local/wsl/{541c815d-5aee-4426-9d51-93b8a5a9b4d3}/ext4.vhdx";
@@ -261,6 +280,14 @@
               RestartSec = 10;
             };
           };
+        }
+
+        # LACT reads its config only at startup, so without this a curve edit
+        # would not take effect until the next boot.
+        {
+          services.lactd.restartTriggers = [
+            config.environment.etc."lact/config.yaml".source
+          ];
         }
       ];
 
