@@ -63,6 +63,9 @@
       environment.systemPackages = with pkgs; [
         adwaita-icon-theme
         nautilus
+        # glib runs Terminal=true entries (nvim's) via a fixed list of terminals
+        # that kitty is not on; xdg-terminal-exec is on it and finds kitty.
+        xdg-terminal-exec
       ];
 
       home-manager.sharedModules = [
