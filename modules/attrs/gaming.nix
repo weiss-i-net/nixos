@@ -4,6 +4,7 @@
     {
       imports = with self.nixosModules; [
         prismlauncher
+        teamspeak3
       ];
       programs = {
         steam = {
