@@ -190,7 +190,7 @@
                 82: 0.55
                 86: 0.72
                 92: 0.75
-            voltage_offset: -100
+            voltage_offset: -60
       '';
       hardware.amdgpu.overdrive.enable = true;
 
